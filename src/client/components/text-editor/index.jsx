@@ -93,7 +93,7 @@ export class TextEditorForm extends Component {
           {getFieldDecorator('text', {
             initialValue: text
           })(
-            <Input.TextArea rows={20}>{text}</Input.TextArea>
+            <Input.TextArea rows={20} defaultValue={text} />
           )}
         </FormItem>
       </Form>
