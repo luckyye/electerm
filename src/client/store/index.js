@@ -353,6 +353,7 @@ const store = Subx.create({
   },
 
   addTab (tab = newTerm(), index = store.tabs.length)  {
+    tab.status = defaultStatus
     let tabs = copy(store.tabs)
     tabs.splice(index, 0, tab)
     store.setState({

@@ -612,13 +612,12 @@ export class BookmarkForm extends Component {
         <FormItem
           {...formItemLayout}
           label={e('loginScript')}
-          hasFeedback
         >
           {getFieldDecorator('loginScript', {
             initialValue: loginScript
           })(
             <div>
-              <Input.TextArea rows={1}>{loginScript}</Input.TextArea>
+              <Input.TextArea rows={1} defaultValue={loginScript} />
               <div>* {e('loginScriptTip')}</div>
             </div>
           )}
