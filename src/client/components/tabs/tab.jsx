@@ -127,9 +127,6 @@ export default class Tab extends Component {
     this.props.store.delTab({
       id: this.props.tab.id
     })
-    if (this.props.store.tabs.length <= 1) {
-      setTimeout(() => this.props.store.addTab(), 1)
-    }
   }
 
   dup = () => {
@@ -231,7 +228,7 @@ export default class Tab extends Component {
 
         <div
           className={cls}
-          onClick={() => this.props.store.addTab}
+          onClick={() => this.props.store.addTab()}
         >
           <Icon type="code-o" /> {e('newTab')}
         </div>

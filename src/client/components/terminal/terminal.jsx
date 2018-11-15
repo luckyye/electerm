@@ -431,6 +431,7 @@ export default class Term extends Component {
   }
 
   extractPath = text => {
+    return
     //only support path like zxd@zxd-Q85M-D2A:~/dev$
     let reg = /^[^@]{1,}@[^:]{1,}:([^$]{1,})\$$/
     let mat = text.match(reg)

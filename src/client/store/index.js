@@ -383,6 +383,9 @@ const store = Subx.create({
       return t.id !== id
     })
     let {currentTabId} = store
+    if (!tabs.length) {
+      tabs.push(newTerm())
+    }
     let update = {
       tabs
     }
@@ -515,7 +518,7 @@ const store = Subx.create({
 
 store.$.subscribe((event) => {
   let {type, path} = event
-
+  console.log(type, path)
   if (
     type === 'SET' &&
     path.includes('tabs') ||

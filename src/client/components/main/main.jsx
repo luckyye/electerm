@@ -102,6 +102,7 @@ export default class Index extends Component {
       currentTabId,
       showControl
     } = store
+    tabs = copy(tabs)
     return (
       <div>
         <SessionControl store={store} />
