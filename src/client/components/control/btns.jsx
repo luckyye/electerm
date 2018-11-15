@@ -45,7 +45,6 @@ export default class Btns extends Component {
       openTransferHistory,
       onSelectHistory,
       onSelectBookmark,
-      setState,
       bookmarkId
     } = this.props.store
 
@@ -110,12 +109,6 @@ export default class Btns extends Component {
           placeholder={c('bookmarks')}
           className="iblock btn-select"
           value={bookmarkId}
-          onSelect={bookmarkId => {
-            onSelectBookmark(bookmarkId)
-            setState({
-              bookmarkId
-            })
-          }}
           showSearch
           treeDefaultExpandAll
           dropdownMatchSelectWidth={false}
@@ -126,9 +119,6 @@ export default class Btns extends Component {
           }}
           onChange={(value, title, extra) => {
             onSelectBookmark(extra.triggerValue)
-            setState({
-              bookmarkId: extra.triggerValue
-            })
           }}
           treeData={treeData}
           treeNodeFilterProp="value"
