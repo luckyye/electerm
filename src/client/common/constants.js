@@ -35,6 +35,7 @@ export const maxSftpHistory = 20
 export const tabWidth = 160
 
 export const tabMargin = 3
+export const maxTransfer = 5
 
 export const fileTypeMap = {
   link: 'l',

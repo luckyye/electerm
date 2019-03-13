@@ -6,6 +6,7 @@ import {Popover, Icon} from 'antd'
 import Transport from './transport'
 import _ from 'lodash'
 import copy from 'json-deep-copy'
+import {maxTransfer} from '../../common/constants'
 
 const {prefix} = window
 const e = prefix('sftp')
