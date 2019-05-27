@@ -2,20 +2,18 @@
  * download upgrade class
  */
 
-
 const fs = require('fs')
-const {resolve} = require('path')
+const { resolve } = require('path')
 const _ = require('lodash')
 const rp = require('phin')
+const { isWin, isMac } = require('../utils/constants')
+const installSrc = require('../lib/install-src')
 const os = require('os')
-const isWin = os.platform() === 'win32'
-const isMac = os.platform() === 'darwin'
-const installSrc = require('./install-src')
 const tempDir = os.tmpdir()
-const {fsExport} = require('./fs')
-const {openFile, rmrf} = fsExport
+const { fsExport } = require('../lib/fs')
+const { openFile, rmrf } = fsExport
 
-function getReleaseInfo(filter, releaseInfoUrl) {
+function getReleaseInfo (filter, releaseInfoUrl) {
   return rp({
     url: releaseInfoUrl,
     timeout: 15000
@@ -28,14 +26,12 @@ function getReleaseInfo(filter, releaseInfoUrl) {
     })
 }
 
-
 class Upgrade {
-
-  constructor(options) {
+  constructor (options) {
     this.options = options
   }
 
-  async init() {
+  async init () {
     let {
       id,
       ws
@@ -46,7 +42,7 @@ class Upgrade {
         r.name.includes('linux')
     }
     if (isWin) {
-      filter = r => /electerm-\d+\.\d+\.\d+-win\.tar\.gz/.test(r.name)
+      filter = r => /electerm-\d+\.\d+\.\d+-win-x64\.tar\.gz/.test(r.name)
     } else if (isMac) {
       filter = r => /\.dmg$/.test(r.name)
     }
@@ -58,7 +54,7 @@ class Upgrade {
     let localPath = resolve(tempDir, releaseInfo.name)
     let remotePath = releaseInfo.browser_download_url
     await rmrf(localPath)
-    let {size} = releaseInfo
+    let { size } = releaseInfo
     this.id = id
     this.localPath = localPath
     let readSteam = await rp({
@@ -122,7 +118,7 @@ class Upgrade {
     }
   }
 
-  onError(err, id, ws) {
+  onError (err, id, ws) {
     ws.s({
       wid: 'upgrade:err:' + id,
       error: {
@@ -149,7 +145,7 @@ class Upgrade {
     delete global.upgradeInsts[this.id]
   }
 
-  //end
+  // end
 }
 
 module.exports = Upgrade

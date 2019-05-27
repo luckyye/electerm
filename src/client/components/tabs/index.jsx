@@ -5,41 +5,39 @@
 
 import React from 'react'
 import _ from 'lodash'
-import {Icon, Dropdown, Menu, Popover} from 'antd'
+import { Icon, Dropdown, Menu, Popover } from 'antd'
 import Tab from './tab'
 import './tabs.styl'
-import {tabWidth, tabMargin} from '../../common/constants'
+import { tabWidth, tabMargin } from '../../common/constants'
 import createName from '../../common/create-title'
 import WindowControl from './window-control'
 import BookmarksList from '../sidebar/bookmark-select'
 
-const {prefix} = window
+const { prefix } = window
 const e = prefix('tabs')
 const c = prefix('control')
 const t = prefix('tabs')
 const MenuItem = Menu.Item
 const extraWidth = 113
 
-
 export default class Tabs extends React.Component {
-
-  componentDidMount() {
+  componentDidMount () {
     this.dom = document.querySelector('.tabs-inner')
     window.addEventListener('keydown', this.handleTabHotkey)
   }
 
-  componentDidUpdate(prevState, prevProps) {
+  componentDidUpdate (prevProps) {
     prevProps = prevProps || {}
     if (
       prevProps.currentTabId !== this.props.currentTabId ||
       prevProps.width !== this.props.width ||
-      prevProps.map(d => d.title).join('#') !== this.props.map(d => d.title).join('#')
+      prevProps.tabs.map(d => d.title).join('#') !== this.props.tabs.map(d => d.title).join('#')
     ) {
       this.adjustScroll()
     }
   }
 
-  componentWillUnmount() {
+  componentWillUnmount () {
     window.removeEventListener('keydown', this.handleTabHotkey)
   }
 
@@ -52,7 +50,7 @@ export default class Tabs extends React.Component {
   }
 
   isOverflow = () => {
-    let {tabs = [], width} = this.props
+    let { tabs = [], width } = this.props
     let len = tabs.length
     let addBtnWidth = 22
     let tabsWidth = this.tabsWidth()
@@ -66,7 +64,7 @@ export default class Tabs extends React.Component {
       e.code === 'Tab' &&
       e.shiftKey
     ) {
-      this.props.clickNextTab()
+      this.props.store.clickNextTab()
     }
   }
 
@@ -74,11 +72,11 @@ export default class Tabs extends React.Component {
     if (!e.target.className.includes('tabs-wrapper')) {
       return
     }
-    this.props.addTab()
+    this.props.store.addTab()
   }
 
   adjustScroll = () => {
-    let {width, tabs, currentTabId} = this.props
+    let { width, tabs, currentTabId } = this.props
     let index = _.findIndex(tabs, t => t.id === currentTabId)
     let tabsDomWith = Array.from(
       document.querySelectorAll('.tab')
@@ -93,7 +91,7 @@ export default class Tabs extends React.Component {
   }
 
   scrollLeft = () => {
-    let {scrollLeft} = this.dom
+    let { scrollLeft } = this.dom
     scrollLeft = scrollLeft - tabMargin - tabWidth
     if (scrollLeft < 0) {
       scrollLeft = 0
@@ -102,7 +100,7 @@ export default class Tabs extends React.Component {
   }
 
   scrollRight = () => {
-    let {scrollLeft} = this.dom
+    let { scrollLeft } = this.dom
     scrollLeft = scrollLeft + tabMargin + tabWidth
     if (scrollLeft < 0) {
       scrollLeft = 0
@@ -110,13 +108,13 @@ export default class Tabs extends React.Component {
     this.dom.scrollLeft = scrollLeft
   }
 
-  onClickMenu = ({key}) => {
+  onClickMenu = ({ key }) => {
     let id = key.split('##')[1]
-    this.props.onChangeTabId(id)
+    this.props.store.onChangeTabId(id)
   }
 
   renderList = () => {
-    let {tabs = []} = this.props
+    let { tabs = [] } = this.props
     return (
       <Menu onClick={this.onClickMenu}>
         {
@@ -133,25 +131,25 @@ export default class Tabs extends React.Component {
     )
   }
 
-  renderMenus() {
-    let {onNewSsh, addTab} = this.props
+  renderMenus () {
+    let { onNewSsh, addTab } = this.props.store
     let cls = 'pd2x pd1y context-item pointer'
     return (
-      <div className="add-menu-wrap">
-        <div
-          className={cls}
-          onClick={() => addTab()}
-        >
-          <Icon type="code" theme="filled" /> {c('newSsh')}
-        </div>
+      <div className='add-menu-wrap'>
         <div
           className={cls}
           onClick={onNewSsh}
         >
-          <Icon type="right-square" theme="filled" /> {t('newTab')}
+          <Icon type='code' theme='filled' /> {c('newSsh')}
+        </div>
+        <div
+          className={cls}
+          onClick={() => addTab()}
+        >
+          <Icon type='right-square' theme='filled' /> {t('newTab')}
         </div>
         <BookmarksList
-          {...this.props}
+          store={this.props.store}
         />
       </div>
     )
@@ -163,69 +161,77 @@ export default class Tabs extends React.Component {
         content={this.renderMenus()}
       >
         <Icon
-          type="plus-circle-o"
+          type='plus-circle-o'
           title={e('openNewTerm')}
-          className="pointer tabs-add-btn font16"
-          onClick={() => this.props.addTab()}
+          className='pointer tabs-add-btn font16'
+          onClick={() => this.props.store.addTab()}
         />
       </Popover>
     )
   }
 
-  renderExtra() {
+  renderExtra () {
     return (
-      <div className="tabs-extra noise pd1x">
+      <div className='tabs-extra noise pd1x'>
         {this.renderAddBtn()}
         <Icon
-          type="left"
-          className="mg1l iblock pointer font16 tab-scroll-icon"
+          type='left'
+          className='mg1l iblock pointer font16 tab-scroll-icon'
           onClick={this.scrollLeft}
 
         />
         <Icon
-          type="right"
-          className="mg1x iblock pointer font16 tab-scroll-icon"
+          type='right'
+          className='mg1x iblock pointer font16 tab-scroll-icon'
           onClick={this.scrollRight}
         />
         <Dropdown
-          className="iblock"
-          placement="bottomRight"
+          className='iblock'
+          placement='bottomRight'
           overlay={this.renderList()}
         >
-          <Icon type="down" className="tabs-dd-icon" />
+          <Icon type='down' className='tabs-dd-icon' />
         </Dropdown>
       </div>
     )
   }
 
-  render() {
-    let {tabs = [], width} = this.props
+  render () {
+    let { tabs = [], width } = this.props
     let len = tabs.length
     let tabsWidthAll = tabMargin * len + 10 + this.tabsWidth()
     let overflow = this.isOverflow()
-    //let extraw = overflow ? extraWidth : 0
+    let left = overflow
+      ? '100%'
+      : tabsWidthAll
     return (
-      <div className="tabs noise">
+      <div className='tabs noise'>
         <div
-          className="tabs-inner"
+          className='tabs-inner'
           style={{
             width
           }}
         >
           <div
-            className="tabs-wrapper relative"
+            className='app-drag'
+            style={{
+              left
+            }}
+          />
+          <div
+            className='tabs-wrapper relative'
             style={{
               width: tabsWidthAll + extraWidth + 10
             }}
             onDoubleClick={this.onAdd}
           >
             {
-              tabs.map((tab, i) => {
+              tabs.map((tab) => {
                 return (
                   <Tab
                     {...this.props}
                     tab={tab}
-                    key={i + '##' + tab.id}
+                    key={tab.id}
                   />
                 )
               })
@@ -237,7 +243,7 @@ export default class Tabs extends React.Component {
             }
           </div>
         </div>
-        <div className="app-drag" />
+        <div className='app-drag' />
         <WindowControl
           isMaximized={this.props.isMaximized}
         />
@@ -249,5 +255,4 @@ export default class Tabs extends React.Component {
       </div>
     )
   }
-
 }

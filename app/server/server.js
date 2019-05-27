@@ -1,11 +1,11 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
-const {log} = require('./log')
+const log = require('../utils/log')
 const terminals = {}
 const logs = {}
 const bodyParser = require('body-parser')
-const {terminal} = require('./terminal')
+const { terminal } = require('./terminal')
 const initWs = require('./dispatch-center')
 
 app.use(cors())
@@ -19,16 +19,16 @@ app.use(bodyParser.json())
 require('express-ws')(app)
 
 app.post('/terminals', async function (req, res) {
-  let {body} = req
+  let { body } = req
   let term = await terminal(body)
     .then(r => r)
     .catch(err => err)
-  let {pid} = term
+  let { pid } = term
   if (pid) {
-    log('Created terminal with PID:', pid)
+    log.debug('Created terminal with PID:', pid)
     terminals[pid] = term
     logs[pid] = Buffer.from('')
-    term.on('data', function(data) {
+    term.on('data', function (data) {
       logs[pid] = Buffer.concat([
         logs[pid],
         Buffer.from(data)
@@ -48,19 +48,19 @@ app.post('/terminals/:pid/size', function (req, res) {
   let term = terminals[pid]
   if (term) {
     term.resize(cols, rows)
-    log('Resized terminal ', pid, ' to ', cols, ' cols and ', rows, ' rows.')
+    log.debug('Resized terminal ', pid, ' to ', cols, ' cols and ', rows, ' rows.')
   }
   res.end()
 })
 
 app.ws('/terminals/:pid', function (ws, req) {
   let term = terminals[req.params.pid]
-  let {pid} = term
-  log('Connected to terminal', pid)
+  let { pid } = term
+  log.debug('Connected to terminal', pid)
 
   ws.send(logs[pid])
 
-  term.on('data', function(data) {
+  term.on('data', function (data) {
     try {
       ws.send(Buffer.from(data))
     } catch (ex) {
@@ -68,9 +68,9 @@ app.ws('/terminals/:pid', function (ws, req) {
     }
   })
 
-  function onClose() {
+  function onClose () {
     term.kill()
-    log('Closed terminal ' + pid)
+    log.debug('Closed terminal ' + pid)
     // Clean things up
     delete terminals[pid]
     delete logs[pid]
@@ -79,15 +79,15 @@ app.ws('/terminals/:pid', function (ws, req) {
 
   term.on('close', onClose)
 
-  ws.on('message', function(msg) {
+  ws.on('message', function (msg) {
     try {
       term.write(msg)
     } catch (ex) {
-      log(ex)
+      log.error(ex)
     }
   })
 
-  ws.on('error', e => console.log(e))
+  ws.on('error', log.error)
 
   ws.on('close', onClose)
 })
@@ -98,10 +98,10 @@ app.get('/run', function (req, res) {
 
 initWs(app)
 
-const runServer = function() {
-  let {port, host} = process.env
+const runServer = function () {
+  let { port, host } = process.env
   app.listen(port, host, () => {
-    log('server', 'runs on', host, port)
+    log.info('server', 'runs on', host, port)
   })
 }
 
@@ -113,7 +113,5 @@ const quitServer = () => {
 
 process.on('exit', quitServer)
 
-//start
+// start
 runServer()
-
-

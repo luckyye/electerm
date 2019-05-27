@@ -1,34 +1,25 @@
 
-
 const { Application } = require('spectron')
-const electronPath = require('electron')
-const {resolve} = require('path')
 const delay = require('./common/wait')
-const cwd = process.cwd()
-const {expect} = require('chai')
+const { expect } = require('chai')
+const appOptions = require('./common/app-options')
 
 describe('tabs', function () {
   this.timeout(100000)
 
-  beforeEach(async function() {
-    this.app = new Application({
-      path: electronPath,
-      webdriverOptions: {
-        deprecationWarnings: false
-      },
-      args: [resolve(cwd, 'work/app'), '--no-session-restore']
-    })
+  beforeEach(async function () {
+    this.app = new Application(appOptions)
     return this.app.start()
   })
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.app && this.app.isRunning()) {
       return this.app.stop()
     }
   })
 
-  it('add tab button works', async function() {
-    const {client} = this.app
+  it('add tab button works', async function () {
+    const { client } = this.app
     await client.waitUntilWindowLoaded()
     await delay(500)
     let tabs = await client.elements('.tabs .tab')
@@ -42,8 +33,8 @@ describe('tabs', function () {
     await delay(500)
   })
 
-  it('double click to duplicate tab button works', async function() {
-    const {client} = this.app
+  it('double click to duplicate tab button works', async function () {
+    const { client } = this.app
     await client.waitUntilWindowLoaded()
     await delay(500)
     let tabs = await client.elements('.tabs .tab')
@@ -56,5 +47,4 @@ describe('tabs', function () {
     expect(wraps.value.length).equal(tabsLenBefore + 1)
     await delay(500)
   })
-
 })

@@ -1,15 +1,15 @@
-import React from 'react'
-import {Icon, Button} from 'antd'
+import { Component } from 'react'
+import { Icon, Button } from 'antd'
 import _ from 'lodash'
-import {getLatestReleaseInfo, getLatestReleaseVersion} from '../../common/update-check'
+import { getLatestReleaseInfo, getLatestReleaseVersion } from '../../common/update-check'
 import upgrade from '../../common/upgrade'
 import compare from '../../common/version-compare'
 import Link from '../common/external-link'
-import {isMac, isWin} from '../../common/constants'
+import { isMac, isWin } from '../../common/constants'
 import newTerm from '../../common/new-terminal'
 import './upgrade.styl'
 
-const {getGlobal, prefix} = window
+const { getGlobal, prefix } = window
 let {
   homepage
 } = getGlobal('packInfo')
@@ -17,25 +17,22 @@ const e = prefix('updater')
 const c = prefix('common')
 const installSrc = getGlobal('installSrc')
 
-export default class Upgrade extends React.Component {
-
-  componentDidMount() {
+export default class Upgrade extends Component {
+  componentDidMount () {
     this.getLatestReleaseInfo()
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate (prevProps) {
     if (prevProps.shouldCheckUpdate !== this.props.shouldCheckUpdate) {
       this.getLatestReleaseInfo()
     }
   }
 
   changeProps = (update) => {
-    this.props.modifier(old => {
-      return {
-        upgradeInfo: {
-          ...old.upgradeInfo,
-          ...update
-        }
+    this.props.store.modifier({
+      upgradeInfo: {
+        ...this.props.store.upgradeInfo,
+        ...update
       }
     })
   }
@@ -44,10 +41,11 @@ export default class Upgrade extends React.Component {
     this.changeProps({
       showUpgradeModal: false
     })
+    this.props.store.focus()
   }
 
   close = () => {
-    this.props.modifier({
+    this.props.store.modifier({
       upgradeInfo: {}
     })
   }
@@ -132,20 +130,20 @@ export default class Upgrade extends React.Component {
 
   renderError = (err) => {
     return (
-      <div className="upgrade-panel">
-        <div className="upgrade-panel-title">
+      <div className='upgrade-panel'>
+        <div className='upgrade-panel-title'>
           <Icon
-            type="close"
-            className="pointer font16 close-upgrade-panel"
+            type='close'
+            className='pointer font16 close-upgrade-panel'
             onClick={this.close}
           />
           {e('fail')}: {err}
         </div>
-        <div className="upgrade-panel-body">
+        <div className='upgrade-panel-body'>
           You can visit
           <Link
             to={homepage}
-            className="mg1x"
+            className='mg1x'
           >{homepage}</Link> to download new version.
         </div>
       </div>
@@ -159,15 +157,15 @@ export default class Upgrade extends React.Component {
     let cls = `animate upgrade-panel${showUpgradeModal ? '' : ' upgrade-panel-hide'}`
     return (
       <div className={cls}>
-        <div className="upgrade-panel-title">
+        <div className='upgrade-panel-title'>
           <Icon
-            type="close"
-            className="pointer font16 close-upgrade-panel"
+            type='close'
+            className='pointer font16 close-upgrade-panel'
             onClick={this.close}
           />
           {e('noNeed')}
         </div>
-        <div className="upgrade-panel-body">
+        <div className='upgrade-panel-body'>
           {e('noNeedDesc')}
         </div>
       </div>
@@ -183,8 +181,8 @@ export default class Upgrade extends React.Component {
     }
     let arr = releaseInfo.split(/[\n\r]+/g)
     return (
-      <div className="pd1t">
-        <div className="bold">Changelog:</div>
+      <div className='pd1t'>
+        <div className='bold'>Changelog:</div>
         {
           arr.map((item, i) => {
             return <div key={'clo' + i}>{item}</div>
@@ -194,7 +192,7 @@ export default class Upgrade extends React.Component {
     )
   }
 
-  render() {
+  render () {
     let {
       remoteVersion,
       upgrading,
@@ -222,22 +220,22 @@ export default class Upgrade extends React.Component {
       : this.upgrade
     return (
       <div className={cls}>
-        <div className="upgrade-panel-title">
+        <div className='upgrade-panel-title'>
           <Icon
-            type="minus-square"
-            className="pointer font16 close-upgrade-panel"
+            type='minus-square'
+            className='pointer font16 close-upgrade-panel'
             onClick={this.minimize}
           />
           {e('newVersion')} <b>{remoteVersion}</b>
         </div>
-        <div className="upgrade-panel-body">
+        <div className='upgrade-panel-body'>
           {
             installSrc || isWin || isMac
               ? (
                 <div>
                   <Button
-                    type="primary"
-                    icon="up-circle"
+                    type='primary'
+                    icon='up-circle'
                     loading={checkingRemoteVersion}
                     disabled={checkingRemoteVersion}
                     onClick={func}
@@ -248,9 +246,9 @@ export default class Upgrade extends React.Component {
                         : e('upgrade')
                     }
                   </Button>
-                  <p className="pd1t">
+                  <p className='pd1t'>
                     {e('goGetIt')}
-                    <Link to={homepage} className="mg1l">{homepage}</Link>
+                    <Link to={homepage} className='mg1l'>{homepage}</Link>
                   </p>
                   {this.renderChangeLog()}
                 </div>
@@ -258,7 +256,7 @@ export default class Upgrade extends React.Component {
               : (
                 <div>
                   {e('goGetIt')}
-                  <Link to={homepage} className="mg1l">{homepage}</Link>
+                  <Link to={homepage} className='mg1l'>{homepage}</Link>
                   {this.renderChangeLog()}
                 </div>
               )
@@ -267,5 +265,4 @@ export default class Upgrade extends React.Component {
       </div>
     )
   }
-
 }

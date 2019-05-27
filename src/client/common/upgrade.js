@@ -2,15 +2,12 @@
  * upgrade through ws
  */
 
-import {generate} from 'shortid'
+import { generate } from 'shortid'
 import initWs from './ws'
 
 const keys = window.getGlobal('upgradeKeys')
 
 class Upgrade {
-
-  constructor() {}
-
   async init ({
     onData,
     onEnd,
@@ -52,18 +49,16 @@ class Upgrade {
       onEnd(arg)
     }, 'upgrade:end:' + id)
     ws.once((arg) => {
-      console.log('upgrade error')
-      console.log(arg.error.stack)
+      log.debug('upgrade error')
+      log.debug(arg.error.stack)
       onError(new Error(arg.error.message))
     }, 'upgrade:err:' + id)
-
   }
 
-  onDestroy(ws) {
+  onDestroy (ws) {
     ws.removeEventListener('message', this.onData)
     ws.close()
   }
-
 }
 
 export default async (props) => {

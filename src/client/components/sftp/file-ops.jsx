@@ -4,12 +4,11 @@
 import React from 'react'
 import _ from 'lodash'
 import fs from '../../common/fs'
-import {typeMap} from '../../common/constants'
+import { typeMap } from '../../common/constants'
 import wait from '../../common/wait'
 
 export default class Transports extends React.PureComponent {
-
-  constructor(props) {
+  constructor (props) {
     super(props)
     this.state = {
       currentTransport: props.transports[0] || null,
@@ -17,11 +16,11 @@ export default class Transports extends React.PureComponent {
     }
   }
 
-  componentWillMount() {
+  componentWillMount () {
     this.mvOrCp()
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate (prevProps) {
     if (
       !_.isEqual(this.props.transports, prevProps.transports)
     ) {
@@ -35,7 +34,7 @@ export default class Transports extends React.PureComponent {
   }
 
   mvOrCp = async (props = this.props) => {
-    let {transports} = props
+    let { transports } = props
     if (!transports.length) {
       return
     }
@@ -55,21 +54,22 @@ export default class Transports extends React.PureComponent {
         : props.sftp[funcName]
       await func(fromPath, toPath)
         .catch(
-          this.props.onError
+          this.props.store.onError
         )
     }
     let ids = transports.map(d => d.id)
     this.props.modifier(old => {
-      old.transports = old.transports.filter(t => {
-        return !ids.includes(t.id)
-      })
-      return old
+      return {
+        transports: old.transports.filter(t => {
+          return !ids.includes(t.id)
+        })
+      }
     })
     await wait(500)
     this.props[transports[0].srcTransferType + 'List']()
   }
 
-  render() {
+  render () {
     return null
   }
 }

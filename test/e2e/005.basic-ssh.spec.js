@@ -9,35 +9,27 @@ const {
   TEST_USER
 } = require('./common/env')
 const { Application } = require('spectron')
-const electronPath = require('electron')
-const {resolve} = require('path')
-const {expect} = require('chai')
-const cwd = process.cwd()
+const { expect } = require('chai')
 const delay = require('./common/wait')
 const basicTermTest = require('./common/basic-terminal-test')
+const appOptions = require('./common/app-options')
 
 describe('ssh', function () {
   this.timeout(100000)
 
-  beforeEach(async function() {
-    this.app = new Application({
-      path: electronPath,
-      webdriverOptions: {
-        deprecationWarnings: false
-      },
-      args: [resolve(cwd, 'work/app'), '--no-session-restore']
-    })
+  beforeEach(async function () {
+    this.app = new Application(appOptions)
     return this.app.start()
   })
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.app && this.app.isRunning()) {
       return this.app.stop()
     }
   })
 
-  it('should open window and basic ssh ls command works', async function() {
-    const {client} = this.app
+  it('should open window and basic ssh ls command works', async function () {
+    const { client } = this.app
     let cmd = 'ls'
     await client.waitUntilWindowLoaded()
     await delay(500)
@@ -46,7 +38,7 @@ describe('ssh', function () {
     await client.setValue('#host', TEST_HOST)
     await client.setValue('#username', TEST_USER)
     await client.setValue('#password', TEST_PASS)
-    await client.execute(function() {
+    await client.execute(function () {
       document.querySelector('.ant-modal .ant-tabs-tabpane-active .ant-btn-primary').click()
     })
     await delay(1500)
@@ -55,8 +47,5 @@ describe('ssh', function () {
     expect(tabsCount.value.length).equal(2)
     await delay(2010)
     await basicTermTest(this, client, cmd)
-
   })
-
 })
-

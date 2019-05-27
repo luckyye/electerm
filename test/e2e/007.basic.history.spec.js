@@ -1,36 +1,27 @@
 const { Application } = require('spectron')
-const electronPath = require('electron')
-const {resolve} = require('path')
 const delay = require('./common/wait')
-const cwd = process.cwd()
 const _ = require('lodash')
-const {log} = console
-const {expect} = require('chai')
+const log = require('./common/log')
+const { expect } = require('chai')
+const appOptions = require('./common/app-options')
 
 describe('history', function () {
-
   this.timeout(100000)
 
-  beforeEach(async function() {
-    this.app = new Application({
-      path: electronPath,
-      webdriverOptions: {
-        deprecationWarnings: false
-      },
-      args: [resolve(cwd, 'work/app'), '--no-session-restore']
-    })
+  beforeEach(async function () {
+    this.app = new Application(appOptions)
     return this.app.start()
   })
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.app && this.app.isRunning()) {
       return this.app.stop()
     }
   })
 
-  it('all buttons open proper history tab', async function() {
+  it('all buttons open proper history tab', async function () {
     const { client, electron } = this.app
-    let {lang} = await electron.remote.getGlobal('et')
+    let { lang } = await electron.remote.getGlobal('et')
     let prefix = prefix => {
       return (id) => {
         return _.get(lang, `${prefix}.${id}`) || id
@@ -50,7 +41,7 @@ describe('history', function () {
     expect(text).equal(e('bookmarks'))
 
     log('tab it')
-    await client.execute(function() {
+    await client.execute(function () {
       document.querySelectorAll('.ant-modal .ant-tabs-bar .ant-tabs-tab')[0].click()
     })
 
@@ -62,14 +53,10 @@ describe('history', function () {
     let focus = await client.hasFocus('.ant-modal .ant-tabs-tabpane-active #host')
     expect(focus).equal(true)
     log('list tab')
-    await client.execute(function() {
+    await client.execute(function () {
       document.querySelectorAll('.ant-modal .ant-tabs-tabpane-active .item-list-unit')[1].click()
     })
     let list1 = await client.getAttribute('.ant-modal .ant-tabs-tabpane-active .item-list-unit:nth-child(1)', 'class')
     expect(list1.includes('active'))
-
-
-
   })
-
 })

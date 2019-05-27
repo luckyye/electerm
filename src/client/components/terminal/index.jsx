@@ -1,16 +1,17 @@
 
-import React from 'react'
+import { Component } from 'react'
 import ZmodemTransfer from './zmodem-transfer'
-import fetch, {handleErr} from '../../common/fetch'
-import {mergeProxy} from '../../common/merge-proxy'
-import {generate} from 'shortid'
+import fetch, { handleErr } from '../../common/fetch'
+import { mergeProxy } from '../../common/merge-proxy'
+import { generate } from 'shortid'
 import _ from 'lodash'
-import {Spin, Icon, Modal, Button, Checkbox} from 'antd'
+import { Spin, Icon, Modal, Button, Checkbox } from 'antd'
 import Input from '../common/input-auto-focus'
-import {statusMap, paneMap} from '../../common/constants'
 import classnames from 'classnames'
 import './terminal.styl'
 import {
+  statusMap,
+  paneMap,
   contextMenuHeight,
   contextMenuPaddingTop,
   typeMap,
@@ -21,7 +22,7 @@ import {
   transferTypeMap
 } from '../../common/constants'
 import deepCopy from 'json-deep-copy'
-import {readClipboard, copy} from '../../common/clipboard'
+import { readClipboard, copy } from '../../common/clipboard'
 import * as fit from 'xterm/lib/addons/fit/fit'
 import * as attach from 'xterm/lib/addons/attach/attach'
 import * as search from 'xterm/lib/addons/search/search'
@@ -39,7 +40,7 @@ Terminal.applyAddon(webLinks)
 Terminal.applyAddon(winptyCompat)
 Terminal.applyAddon(zmodem)
 
-const {prefix} = window
+const { prefix } = window
 const e = prefix('ssh')
 const m = prefix('menu')
 const f = prefix('form')
@@ -50,7 +51,7 @@ const privateKeyMsg = 'private key detected'
 const typeSshConfig = 'ssh-config'
 
 const computePos = (e, height) => {
-  let {clientX, clientY} = e
+  let { clientX, clientY } = e
   let res = {
     left: clientX,
     top: clientY
@@ -64,9 +65,8 @@ const computePos = (e, height) => {
   return res
 }
 
-export default class Term extends React.PureComponent {
-
-  constructor(props) {
+export default class Term extends Component {
+  constructor (props) {
     super(props)
     this.state = {
       id: props.id || 'id' + generate(),
@@ -81,12 +81,12 @@ export default class Term extends React.PureComponent {
     }
   }
 
-  componentDidMount() {
+  componentDidMount () {
     this.initTerminal()
     this.initEvt()
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate (prevProps) {
     let shouldChange = (
       prevProps.currentTabId !== this.props.currentTabId &&
       this.props.tab.id === this.props.currentTabId &&
@@ -126,7 +126,7 @@ export default class Term extends React.PureComponent {
     }
   }
 
-  componentWillUnmount() {
+  componentWillUnmount () {
     Object.keys(this.timers).forEach(k => {
       clearTimeout(this.timers[k])
     })
@@ -166,7 +166,7 @@ export default class Term extends React.PureComponent {
 
   checkConfigChange = (prevProps, props) => {
     for (let k of this.terminalConfigProps) {
-      let {name, type} = k
+      let { name, type } = k
       let prev = this.getValue(prevProps, type, name)
       let curr = this.getValue(props, type, name)
       if (
@@ -183,7 +183,7 @@ export default class Term extends React.PureComponent {
   timers = {}
 
   initEvt = () => {
-    let {id} = this.state
+    let { id } = this.state
     let dom = document.getElementById(id)
     this.dom = dom
     dom.addEventListener('contextmenu', this.onContextMenu)
@@ -205,22 +205,15 @@ export default class Term extends React.PureComponent {
     }
     if (e.data && e.data.id === this.props.id) {
       this.term.selectAll()
-    }
-    else if (keyControlPressed(e) && e.code === 'KeyF') {
+    } else if (keyControlPressed(e) && e.code === 'KeyF') {
       this.openSearch()
-    } else if (
-      e.ctrlKey &&
-      e.shiftKey &&
-      e.code === 'KeyC'
-    ) {
-      this.onCopy()
     } else if (
       e.ctrlKey &&
       e.shiftKey &&
       e.code === 'Tab'
     ) {
       e.stopPropagation()
-      this.props.clickNextTab()
+      this.props.store.clickNextTab()
     }
   }
 
@@ -237,14 +230,14 @@ export default class Term extends React.PureComponent {
     if (
       this.props.id === this.props.activeTerminalId
     ) {
-      this.props.modifier({
+      this.props.store.modifier({
         activeTerminalId: ''
       })
     }
   }
 
   onzmodemRetract = () => {
-    console.log('zmodemRetract')
+    log.debug('zmodemRetract')
   }
 
   onReceiveZmodemSession = () => {
@@ -273,14 +266,12 @@ export default class Term extends React.PureComponent {
     if (percent > 99) {
       percent = 99
     }
-    this.setState(() => {
-      return {
-        zmodemTransfer: {
-          fileInfo,
-          percent,
-          transferedSize: total,
-          type
-        }
+    this.setState({
+      zmodemTransfer: {
+        fileInfo,
+        percent,
+        transferedSize: total,
+        type
       }
     })
   }
@@ -303,7 +294,7 @@ export default class Term extends React.PureComponent {
           this.saveToDisk(xfer, FILE_BUFFER)
         }
       )
-      .catch(this.props.onError)
+      .catch(this.props.store.onError)
   }
 
   beforeZmodemUpload = (file, files) => {
@@ -314,12 +305,12 @@ export default class Term extends React.PureComponent {
     window.Zmodem.Browser.send_files(
       this.zsession,
       files, {
-        on_offer_response(obj, xfer) {
+        on_offer_response (obj, xfer) {
           if (xfer) {
             th.updateProgress(xfer, transferTypeMap.upload)
           }
         },
-        on_progress(obj, xfer) {
+        on_progress (obj, xfer) {
           th.updateProgress(xfer, transferTypeMap.upload)
         }
       }
@@ -341,7 +332,7 @@ export default class Term extends React.PureComponent {
   }
 
   cancelZmodem = () => {
-    this.props.reloadTab(this.props.tab)
+    this.props.store.reloadTab(this.props.tab)
   }
 
   onZmodemEndSend = () => {
@@ -363,7 +354,7 @@ export default class Term extends React.PureComponent {
   }
 
   onZmodemCatch = (e) => {
-    this.props.onError(e)
+    this.props.store.onError(e)
     this.onZmodemEnd()
   }
 
@@ -376,8 +367,7 @@ export default class Term extends React.PureComponent {
     this.zsession = zsession
     if (zsession.type === 'receive') {
       this.onReceiveZmodemSession()
-    }
-    else {
+    } else {
       this.onSendZmodemSession()
     }
   }
@@ -397,7 +387,7 @@ export default class Term extends React.PureComponent {
     let content = this.renderContext()
     let height = content.props.children.filter(_.identity)
       .length * contextMenuHeight + contextMenuPaddingTop * 2
-    this.props.openContextMenu({
+    this.props.store.openContextMenu({
       content,
       pos: computePos(e, height)
     })
@@ -461,31 +451,10 @@ export default class Term extends React.PureComponent {
     })
   }
 
-  onSelectTheme = id => {
-    this.props.setTheme(id)
-    this.props.closeContextMenu()
-  }
-
-  renderThemeSelect = () => {
-    let {theme, themes} = this.props
-    return (
-      <div className="sub-context-menu">
-        {
-          themes.map(item => {
-            let cls = `sub-context-menu-item ${theme === item.id ? 'active' : ''}`
-            return (
-              <div
-                className={cls}
-                onClick={() => this.onSelectTheme(item.id)}
-              >
-                {item.name}
-              </div>
-            )
-          })
-        }
-      </div>
-    )
-  }
+  // onSelectTheme = id => {
+  //   this.props.store.setTheme(id)
+  //   this.props.store.closeContextMenu()
+  // }
 
   renderContext = () => {
     let cls = 'pd2x pd1y context-item pointer'
@@ -501,39 +470,39 @@ export default class Term extends React.PureComponent {
           className={clsCopy}
           onClick={hasSlected ? this.onCopy : _.noop}
         >
-          <Icon type="copy" /> {m('copy')}
-          <span className="context-sub-text">({ctrlOrCmd}+shift+C)</span>
+          <Icon type='copy' /> {m('copy')}
+          <span className='context-sub-text'>({ctrlOrCmd}+shift+C)</span>
         </div>
         <div
           className={clsPaste}
           onClick={copyed ? this.onPaste : _.noop}
         >
-          <Icon type="switcher" /> {m('paste')}
-          <span className="context-sub-text">({ctrlOrCmd}+shift+V)</span>
+          <Icon type='switcher' /> {m('paste')}
+          <span className='context-sub-text'>({ctrlOrCmd}+shift+V)</span>
         </div>
         <div
           className={cls}
           onClick={this.onClear}
         >
-          <Icon type="reload" /> {e('clear')}
+          <Icon type='reload' /> {e('clear')}
         </div>
         <div
           className={cls}
           onClick={this.onSelectAll}
         >
-          <Icon type="select" /> {e('selectAll')}
+          <Icon type='select' /> {e('selectAll')}
         </div>
         <div
           className={cls}
           onClick={this.openSearch}
         >
-          <Icon type="search" /> {e('search')}
+          <Icon type='search' /> {e('search')}
         </div>
         <div
           className={cls}
           onClick={this.split}
         >
-          <Icon type="border-horizontal" /> {e('split')}
+          <Icon type='border-horizontal' /> {e('split')}
         </div>
       </div>
     )
@@ -555,9 +524,9 @@ export default class Term extends React.PureComponent {
   }
 
   initTerminal = async () => {
-    let {id} = this.state
-    //let {password, privateKey, host} = this.props.tab
-    let {themeConfig, tab = {}, config = {}} = this.props
+    let { id } = this.state
+    // let {password, privateKey, host} = this.props.tab
+    let { themeConfig, tab = {}, config = {} } = this.props
     let term = new Terminal({
       scrollback: config.scrollback,
       rightClickSelectsWord: config.rightClickSelectsWord || false,
@@ -580,13 +549,13 @@ export default class Term extends React.PureComponent {
 
   setActive = () => {
     this.props.setActive(this.props.id)
-    this.props.modifier({
+    this.props.store.modifier({
       activeTerminalId: this.props.id
     })
   }
 
   initData = () => {
-    let {type, title, loginScript} = this.props.tab
+    let { type, title, loginScript } = this.props.tab
     let cmd = type === terminalSshConfigType
       ? `ssh ${title.split(/\s/g)[0]}\r`
       : (
@@ -603,12 +572,12 @@ export default class Term extends React.PureComponent {
   }
 
   extractPath = text => {
-    //only support path like zxd@zxd-Q85M-D2A:~/dev$
+    // only support path like zxd@zxd-Q85M-D2A:~/dev$
     let reg = /^[^@]{1,}@[^:]{1,}:([^$]{1,})\$$/
     let mat = text.match(reg)
     let startPath = mat && mat[1] ? mat[1] : ''
     if (startPath.startsWith('~') || startPath.startsWith('/')) {
-      this.props.editTab(this.props.tab.id, {
+      this.props.store.editTab(this.props.tab.id, {
         startPath
       })
     }
@@ -618,7 +587,7 @@ export default class Term extends React.PureComponent {
 
   setStatus = status => {
     let id = _.get(this.props, 'tab.id')
-    this.props.editTab(id, {
+    this.props.store.editTab(id, {
       status
     })
   }
@@ -627,14 +596,17 @@ export default class Term extends React.PureComponent {
     this.setState({
       loading: true
     })
-    let {cols, rows} = term
-    let {config} = this.props
-    let {host, port} = config
+    let { cols, rows } = term
+    let { config } = this.props
+    let { host, port } = config
     let wsUrl
     let url = `http://${host}:${port}/terminals`
-    let {tab = {}} = this.props
-    let {startPath, srcId, from = 'bookmarks', type, loginScript} = tab
-    let {savePassword} = this.state
+    let { tab = {} } = this.props
+    let {
+      startPath, srcId, from = 'bookmarks',
+      type, loginScript, encode
+    } = tab
+    let { savePassword } = this.state
     let isSshConfig = type === terminalSshConfigType
     let extra = this.props.sessionOptions
     let pid = await fetch.post(url, {
@@ -666,7 +638,7 @@ export default class Term extends React.PureComponent {
           this.setState(() => ({ passType: 'passphrase' }))
           return 'fail-private'
         } else {
-          handleErr({message: text})
+          handleErr({ message: text })
         }
       }
     })
@@ -675,7 +647,7 @@ export default class Term extends React.PureComponent {
       return this.promote()
     }
     if (savePassword) {
-      this.props.editItem(srcId, extra, from)
+      this.props.store.editItem(srcId, extra, from)
     }
     this.setState({
       loading: false
@@ -707,7 +679,6 @@ export default class Term extends React.PureComponent {
     this.socket = socket
     term.on('refresh', this.onRefresh)
     term.on('resize', this.onResizeTerminal)
-
     let cid = _.get(this.props, 'currentTabId')
     let tid = _.get(this.props, 'tab.id')
     if (cid === tid && this.props.tab.status === statusMap.success) {
@@ -724,6 +695,27 @@ export default class Term extends React.PureComponent {
       term.on('zmodemDetect', this.onZmodemDetect)
     }
     term.attachCustomKeyEventHandler(this.handleEvent)
+    this.decoder = new TextDecoder(encode)
+    term.__getMessage = function (ev) {
+      let str = ''
+      if (typeof ev.data === 'object') {
+        if (ev.data instanceof ArrayBuffer) {
+          str = this.decoder.decode(ev.data)
+          term.write(str)
+        } else {
+          let fileReader = new FileReader()
+          fileReader.addEventListener('load', function () {
+            str = this.decoder.decode(fileReader.result)
+            term.write(str)
+          })
+          fileReader.readAsArrayBuffer(ev.data)
+        }
+      } else if (typeof ev.data === 'string') {
+        term.write(ev.data)
+      } else {
+        throw Error(`Cannot handle ${typeof ev.data} websocket message.`)
+      }
+    }
     this.term = term
     this.startPath = startPath
     if (startPath || loginScript || isSshConfig) {
@@ -732,7 +724,7 @@ export default class Term extends React.PureComponent {
     }
   }
 
-  onResize = () => {
+  onResize = _.debounce(() => {
     let cid = _.get(this.props, 'currentTabId')
     let tid = _.get(this.props, 'tab.id')
     if (
@@ -741,17 +733,17 @@ export default class Term extends React.PureComponent {
       this.term
     ) {
       try {
-        let {cols, rows} = this.term.proposeGeometry()
+        let { cols, rows } = this.term.proposeGeometry()
         this.term.resize(cols, rows)
       } catch (e) {
-        console.log('resize failed')
+        log.info('resize failed')
       }
     }
-  }
+  }, 200)
 
   onerrorSocket = err => {
     this.setStatus(statusMap.error)
-    console.log(err.stack)
+    log.warn('onerrorSocket', err)
   }
 
   oncloseSocket = () => {
@@ -759,16 +751,16 @@ export default class Term extends React.PureComponent {
       return
     }
     this.setStatus(statusMap.error)
-    console.log('socket closed, pid:', this.pid)
+    log.debug('socket closed, pid:', this.pid)
   }
 
   onResizeTerminal = size => {
-    let {cols, rows} = size
+    let { cols, rows } = size
     let config = deepCopy(
       window.getGlobal('_config')
     )
-    let {host, port} = config
-    let {pid} = this
+    let { host, port } = config
+    let { pid } = this
     let url = `http://${host}:${port}/terminals/${pid}/size?cols=${cols}&rows=${rows}`
     fetch.post(url)
   }
@@ -781,8 +773,8 @@ export default class Term extends React.PureComponent {
   }
 
   onCancel = () => {
-    let {id} = this.props.tab
-    this.props.delTab({id})
+    let { id } = this.props.tab
+    this.props.store.delTab({ id })
   }
 
   onToggleSavePass = () => {
@@ -792,13 +784,13 @@ export default class Term extends React.PureComponent {
   }
 
   renderPasswordForm = () => {
-    let {tempPassword, savePassword, promoteModalVisible} = this.state
-    let {type} = this.props.tab
+    let { tempPassword, savePassword, promoteModalVisible } = this.state
+    let { type } = this.props.tab
     return (
       <div>
         <Input
           value={tempPassword}
-          type="password"
+          type='password'
           autofocustrigger={promoteModalVisible}
           selectall
           onChange={this.onChangePass}
@@ -807,7 +799,7 @@ export default class Term extends React.PureComponent {
         {
           type !== typeSshConfig
             ? (
-              <div className="pd1t">
+              <div className='pd1t'>
                 <Checkbox
                   checked={savePassword}
                   onChange={this.onToggleSavePass}
@@ -830,11 +822,11 @@ export default class Term extends React.PureComponent {
     let {
       tempPassword,
       passType
-    }  = this.state
+    } = this.state
     this.props.setSessionState(old => {
       let sessionOptions = deepCopy(old.sessionOptions) || {}
       sessionOptions[passType] = tempPassword
-      return {sessionOptions}
+      return { sessionOptions }
     })
     this.setState({
       promoteModalVisible: false
@@ -844,7 +836,7 @@ export default class Term extends React.PureComponent {
   renderPromoteModal = () => {
     let {
       passType = 'password'
-    }  = this.state
+    } = this.state
     let props = {
       title: f(passType) + '?',
       content: this.renderPasswordForm(),
@@ -865,19 +857,19 @@ export default class Term extends React.PureComponent {
   renderModalFooter = () => {
     let disabled = !this.state.tempPassword
     return (
-      <div className="alignright pd1">
+      <div className='alignright pd1'>
         <Button
-          type="primary"
-          icon="check-circle"
+          type='primary'
+          icon='check-circle'
           disabled={disabled}
           onClick={this.onClickConfirmPass}
-          className="mg1r"
+          className='mg1r'
         >
           {c('ok')}
         </Button>
         <Button
-          type="ghost"
-          className="mg1r"
+          type='ghost'
+          className='mg1r'
           onClick={this.onCancel}
         >
           {c('cancel')}
@@ -887,12 +879,12 @@ export default class Term extends React.PureComponent {
   }
 
   renderSearchBox = () => {
-    let {searchInput, searchVisible} = this.state
+    let { searchInput, searchVisible } = this.state
     if (!searchVisible) {
       return null
     }
     return (
-      <div className="term-search-box">
+      <div className='term-search-box'>
         <Input
           value={searchInput}
           onChange={this.onChangeSearch}
@@ -900,20 +892,20 @@ export default class Term extends React.PureComponent {
           addonAfter={
             <span>
               <Icon
-                type="left"
-                className="pointer mg1r"
+                type='left'
+                className='pointer mg1r'
                 title={e('prevMatch')}
                 onClick={this.searchPrev}
               />
               <Icon
-                type="right"
-                className="pointer mg1r"
+                type='right'
+                className='pointer mg1r'
                 title={e('nextMatch')}
                 onClick={this.searchNext}
               />
               <Icon
-                type="close"
-                className="pointer"
+                type='close'
+                className='pointer'
                 title={m('close')}
                 onClick={this.searchClose}
               />
@@ -924,9 +916,9 @@ export default class Term extends React.PureComponent {
     )
   }
 
-  render() {
-    let {id, loading, zmodemTransfer} = this.state
-    let {height, width, left, top, position, id: pid} = this.props
+  render () {
+    let { id, loading, zmodemTransfer } = this.state
+    let { height, width, left, top, position, id: pid } = this.props
     let cls = classnames('term-wrap bg-black', {
       'not-first-term': !!position
     }, 'tw-' + pid)
@@ -934,19 +926,22 @@ export default class Term extends React.PureComponent {
       <div
         className={cls}
         style={{
-          height, width, left, top,
+          height,
+          width,
+          left,
+          top,
           zIndex: position / 10
         }}
       >
         {this.renderPromoteModal()}
         <input
-          type="file"
+          type='file'
           multiple
           id={`${id}-file-sel`}
-          className="hide"
+          className='hide'
         />
         <div
-          className="bg-black absolute"
+          className='bg-black absolute'
           style={{
             left: '3px',
             top: '10px',
@@ -957,7 +952,7 @@ export default class Term extends React.PureComponent {
           {this.renderSearchBox()}
           <div
             id={id}
-            className="absolute"
+            className='absolute'
             style={{
               left: 0,
               top: 0,
@@ -971,9 +966,8 @@ export default class Term extends React.PureComponent {
             beforeZmodemUpload={this.beforeZmodemUpload}
           />
         </div>
-        <Spin className="loading-wrapper" spinning={loading} />
+        <Spin className='loading-wrapper' spinning={loading} />
       </div>
     )
   }
-
 }

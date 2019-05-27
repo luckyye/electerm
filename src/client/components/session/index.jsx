@@ -2,12 +2,12 @@
 /**
  * terminal/sftp wrapper
  */
-import React from 'react'
+import { Component } from 'react'
 import Term from '../terminal'
 import Sftp from '../sftp'
-import {Icon} from 'antd'
+import { Icon } from 'antd'
 import _ from 'lodash'
-import {generate} from 'shortid'
+import { generate } from 'shortid'
 import copy from 'json-deep-copy'
 import classnames from 'classnames'
 import {
@@ -38,14 +38,12 @@ const getPrevTerminal = terminals => {
   return _.last(terminals)
 }
 
-
-const {prefix} = window
+const { prefix } = window
 const e = prefix('ssh')
 const m = prefix('menu')
 
-export default class WindowWrapper extends React.PureComponent  {
-
-  constructor(props) {
+export default class SessionWrapper extends Component {
+  constructor (props) {
     super(props)
     let id = generate()
     this.state = {
@@ -64,23 +62,23 @@ export default class WindowWrapper extends React.PureComponent  {
     }
   }
 
-  componentDidMount() {
+  componentDidMount () {
     this.initEvent()
   }
 
-  componentWillUnmount() {
+  componentWillUnmount () {
     this.destroyEvent()
   }
 
-  initEvent() {
+  initEvent () {
     window.addEventListener('keydown', this.handleEvent)
   }
 
-  destroyEvent() {
+  destroyEvent () {
     window.removeEventListener('keydown', this.handleEvent)
   }
 
-  isActive() {
+  isActive () {
     return this.props.currentTabId === this.props.tab.id &&
       this.state.pane === paneMap.terminal
   }
@@ -127,7 +125,7 @@ export default class WindowWrapper extends React.PureComponent  {
   }
 
   delSplit = () => {
-    let {activeSplitId, terminals} = this.state
+    let { activeSplitId, terminals } = this.state
     let newTerms = terminals.filter(t => t.id !== activeSplitId)
     if (!newTerms.length) {
       return
@@ -138,10 +136,11 @@ export default class WindowWrapper extends React.PureComponent  {
       terminals: newTerms,
       activeSplitId: newActiveId
     })
+    this.props.store.focus()
   }
 
   changeDirection = () => {
-    let {splitDirection} = this.state
+    let { splitDirection } = this.state
     this.setState({
       splitDirection: splitDirection === terminalSplitDirectionMap.horizontal
         ? terminalSplitDirectionMap.vertical
@@ -157,8 +156,8 @@ export default class WindowWrapper extends React.PureComponent  {
 
   computePosition = (index) => {
     let len = this.state.terminals.length || 1
-    let {width: windowWidth} = this.props
-    let {splitDirection} = this.state
+    let { width: windowWidth } = this.props
+    let { splitDirection } = this.state
     let isHori = splitDirection === terminalSplitDirectionMap.horizontal
     let heightAll = this.computeHeight()
     let width = isHori
@@ -182,13 +181,13 @@ export default class WindowWrapper extends React.PureComponent  {
   }
 
   renderTerminals = () => {
-    let {pane, terminals, splitDirection, sessionOptions} = this.state
+    let { pane, terminals, splitDirection, sessionOptions } = this.state
     let cls = pane === paneMap.terminal
       ? 'terms-box bg-black'
       : 'terms-box bg-black hide'
-    let {props} = this
     let height = this.computeHeight()
-    let {width, tab} = props
+    let { store, width, tab } = this.props
+    let themeConfig = store.getThemeConfig()
     return (
       <div
         className={cls}
@@ -204,8 +203,9 @@ export default class WindowWrapper extends React.PureComponent  {
           {
             terminals.map((t) => {
               let pops = {
-                ...props,
+                ...this.props,
                 ...t,
+                themeConfig,
                 pane,
                 ..._.pick(
                   this,
@@ -228,28 +228,27 @@ export default class WindowWrapper extends React.PureComponent  {
   }
 
   renderSftp = () => {
-    let {pane, sessionOptions, sshConnected} = this.state
+    let { pane, sessionOptions, sshConnected } = this.state
     let height = this.computeHeight()
-    let {props} = this
     let cls = pane === paneMap.terminal
       ? 'hide'
       : ''
     return (
       <div className={cls}>
         <Sftp
-          {...props}
           sessionOptions={sessionOptions}
           sshConnected={sshConnected}
           height={height}
           pane={pane}
+          {...this.props}
         />
       </div>
     )
   }
 
   renderControl = () => {
-    let {pane, splitDirection, terminals} = this.state
-    let {props} = this
+    let { pane, splitDirection, terminals } = this.state
+    let { props } = this
     let host = _.get(props, 'tab.host') &&
       _.get(props, 'tab.type') !== terminalSshConfigType
     let isHori = splitDirection === terminalSplitDirectionMap.horizontal
@@ -268,9 +267,9 @@ export default class WindowWrapper extends React.PureComponent  {
     ]
     return (
       <div
-        className="terminal-control fix"
+        className='terminal-control fix'
       >
-        <div className="term-sftp-tabs fleft">
+        <div className='term-sftp-tabs fleft'>
           {
             [
               host ? paneMap.ssh : paneMap.terminal,
@@ -298,15 +297,15 @@ export default class WindowWrapper extends React.PureComponent  {
         {
           pane === paneMap.terminal
             ? (
-              <div className="fright term-controls">
+              <div className='fright term-controls'>
                 {
                   hide
                     ? null
                     : (
                       <Icon
-                        type="close-circle"
-                        theme="filled"
-                        className="mg1r icon-trash font16 iblock pointer"
+                        type='close-circle'
+                        theme='filled'
+                        className='mg1r icon-trash font16 iblock pointer'
                         onClick={this.delSplit}
                         title={m('del')}
                       />
@@ -332,8 +331,8 @@ export default class WindowWrapper extends React.PureComponent  {
     )
   }
 
-  render() {
-    let {pane, splitDirection} = this.state
+  render () {
+    let { pane, splitDirection } = this.state
     return (
       <div
         className={'term-sftp-box ' + pane + ' ' + splitDirection}
@@ -345,5 +344,4 @@ export default class WindowWrapper extends React.PureComponent  {
       </div>
     )
   }
-
 }

@@ -2,13 +2,11 @@
  * transfer class
  */
 
-
 const fs = require('original-fs')
 const _ = require('lodash')
 
 class Transfer {
-
-  constructor({
+  constructor ({
     remotePath,
     localPath,
     options = {},
@@ -40,19 +38,23 @@ class Transfer {
     }, 1000)
 
     readSteam.on('data', chunk => {
-      let res = writeSteam.write(chunk)
-      if (res) {
-        count += chunk.length
-        this.onData(count)
-      } else {
-        readSteam.pause()
-        writeSteam.once('drain', () => {
+      try {
+        let res = writeSteam.write(chunk)
+        if (res) {
           count += chunk.length
           this.onData(count)
-          if (!this.pausing) {
-            readSteam.resume()
-          }
-        })
+        } else {
+          readSteam.pause()
+          writeSteam.once('drain', () => {
+            count += chunk.length
+            this.onData(count)
+            if (!this.pausing) {
+              readSteam.resume()
+            }
+          })
+        }
+      } catch (e) {
+        this.onError(e, id)
       }
     })
 
@@ -74,7 +76,7 @@ class Transfer {
     })
   }
 
-  onError(err, id, ws) {
+  onError (err, id, ws) {
     ws && ws.s({
       wid: 'transfer:err:' + id,
       error: {
@@ -100,9 +102,8 @@ class Transfer {
     delete global.transferInsts[this.id]
   }
 
-  //end
+  // end
 }
-
 
 module.exports = {
   Transfer,

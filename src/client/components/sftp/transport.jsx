@@ -2,16 +2,16 @@
  * tranporter
  */
 import React from 'react'
-import {Icon} from 'antd'
+import { Icon } from 'antd'
 import copy from 'json-deep-copy'
 import _ from 'lodash'
 import resolve from '../../common/resolve'
-import wait from '../../common/wait'
-import {transferTypeMap} from '../../common/constants'
-import format, {computeLeftTime, computePassedTime} from './transfer-speed-format'
+import { transferTypeMap } from '../../common/constants'
+import format, { computeLeftTime, computePassedTime } from './transfer-speed-format'
 import fs from '../../common/fs'
+import { transportTypes } from './transport-types'
 
-const {prefix} = window
+const { prefix } = window
 const e = prefix('sftp')
 
 const typeIconMap = {
@@ -24,38 +24,61 @@ const typeIconMap2 = {
 }
 
 export default class Tranporter extends React.PureComponent {
-
-  componentWillMount() {
+  componentDidMount () {
+    this.initEvent()
     this.startTransfer()
   }
 
-  componentDidUpdate(prevProps) {
-    let before = this.props.currentTransport
-    let after = prevProps.currentTransport
+  componentDidUpdate (prevProps) {
+    let before = this.props.currentTransports
+    let after = prevProps.currentTransports
     if (!_.isEqual(before, after)) {
       this.startTransfer()
     }
   }
 
-  componentWillUnmount() {
+  componentWillUnmount () {
+    window.removeEventListener('message', this.onMessage)
     this.transport && this.transport.destroy && this.transport.destroy()
-    this.props.onChildDestroy(this.props.transport.id)
     clearTimeout(this.timer)
   }
 
+  initEvent = () => {
+    window.addEventListener('message', this.onMessage)
+  }
+
+  onMessage = (e) => {
+    let action = _.get(e, 'data.action')
+    let ids = _.get(e, 'data.ids')
+    if (!ids || !ids.includes(this.props.transport.id)) {
+      return
+    }
+    if (
+      action === transportTypes.pauseTransport
+    ) {
+      this.pause()
+    } else if (action === transportTypes.resumeTransport) {
+      this.resume()
+    } else if (action === transportTypes.cancelTransport) {
+      this.cancel()
+    }
+  }
+
   update = (transport) => {
-    let transports = copy(this.props.transports)
-    let index = _.findIndex(transports, t => t.id === transport.id)
-    transports.splice(index, 1, transport)
-    this.props.modifier({
-      transports
+    this.props.modifier((old) => {
+      let transports = copy(old.transports)
+      let index = _.findIndex(transports, t => t.id === transport.id)
+      transports.splice(index, 1, transport)
+      return {
+        transports
+      }
     })
   }
 
   pause = () => {
     let transport = copy(this.props.transport)
     transport.pausing = true
-    this.transport.pause()
+    this.transport && this.transport.pause()
     this.update(transport)
   }
 
@@ -63,7 +86,7 @@ export default class Tranporter extends React.PureComponent {
     let transport = copy(this.props.transport)
     transport.pausing = false
     this.update(transport)
-    this.transport.resume()
+    this.transport && this.transport.resume()
   }
 
   onData = (transferred) => {
@@ -78,8 +101,12 @@ export default class Tranporter extends React.PureComponent {
     percent = percent >= 100 ? 99 : percent
     transport.percent = percent
     transport.status = 'active'
+    transport.transferred = transferred
     transport.speed = format(transferred, this.startTime)
-    transport.leftTime = computeLeftTime(transferred, total, this.startTime)
+    Object.assign(
+      transport,
+      computeLeftTime(transferred, total, this.startTime)
+    )
     transport.passedTime = computePassedTime(this.startTime)
     this.update(transport)
   }
@@ -88,7 +115,7 @@ export default class Tranporter extends React.PureComponent {
     let transport = copy(this.props.transport)
     transport.status = 'exception'
     this.update(transport)
-    this.props.onError(e)
+    this.props.store.onError(e)
   }
 
   onEnd = () => {
@@ -104,25 +131,24 @@ export default class Tranporter extends React.PureComponent {
       srcTransferType
     } = this.props.transport
     let cb = this.props[targetTransferType + 'List']
-    let {startTime} = this
+    let { startTime } = this
     let finishTime = +new Date()
-    let {size} = file
-    this.props.addTransferHistory({
-      id,
-      fromPath,
-      toPath,
-      targetTransferType,
-      srcTransferType,
-      startTime,
-      finishTime,
-      type: transferType,
-      size: file.size,
-      speed: format(size, startTime)
-    })
-    this.timer = setTimeout(
-      () => this.cancel(cb),
-      100
-    )
+    let { size } = file
+    if (!this.props.config.disableTransferHistory) {
+      this.props.store.addTransferHistory({
+        id,
+        fromPath,
+        toPath,
+        targetTransferType,
+        srcTransferType,
+        startTime,
+        finishTime,
+        type: transferType,
+        size: file.size,
+        speed: format(size, startTime)
+      })
+    }
+    this.cancel(cb)
   }
 
   mkdir = async (transport) => {
@@ -140,22 +166,30 @@ export default class Tranporter extends React.PureComponent {
   }
 
   startTransfer = async () => {
-    let {id} = this.props.transport
-    let {currentTransport} = this.props
+    let { currentTransports } = this.props
+    let {
+      id,
+      transferType,
+      fromPath,
+      toPath,
+      file: {
+        isDirectory,
+        targetFile,
+        mode
+      }
+    } = this.props.transport
+    let cids = currentTransports.map(t => t.id)
     if (
-      _.get(currentTransport, 'id') === id && !this.started
+      cids.includes(id) && !this.started
     ) {
       this.started = true
       this.startTime = +new Date()
-      let {
-        transferType,
-        fromPath,
-        toPath,
-        file: {
-          isDirectory,
-          mode
-        }
-      } = this.props.transport
+      mode = _.get(targetFile, 'mode') || mode
+      if (isDirectory) {
+        return this.mkdir(this.props.transport)
+          .then(this.onEnd)
+          .catch(this.onError)
+      }
       if (isDirectory) {
         return this.mkdir(this.props.transport)
           .then(this.onEnd)
@@ -171,7 +205,7 @@ export default class Tranporter extends React.PureComponent {
       this.transport = await this.props.sftp[transferType]({
         remotePath,
         localPath,
-        options: {mode},
+        options: { mode },
         ..._.pick(this, [
           'onData',
           'onError',
@@ -183,27 +217,24 @@ export default class Tranporter extends React.PureComponent {
 
   cancel = async (callback) => {
     this.onCancel = true
-    let {id} = this.props.transport
-    let oldTrans = copy(this.props.transports)
-    if (oldTrans.length === 1) {
-      if (this.transport) {
-        await this.transport.pause()
+    let { id } = this.props.transport
+    this.props.modifier((old) => {
+      let oldTrans = copy(old.transports)
+      let transports = oldTrans.filter(t => {
+        return t.id !== id
+      })
+      return {
+        transports
       }
-      await wait(150)
-    }
-    let transports = oldTrans.filter(t => {
-      return t.id !== id
-    })
-    this.props.modifier({
-      transports
     }, _.isFunction(callback) ? callback : undefined)
   }
 
-  buildCls(file = {}) {
-    let {index, transports, currentTransport} = this.props
-    let {path} = file
+  buildCls (file = {}) {
+    let { index, transports, currentTransports } = this.props
+    let { path } = file
     let shouldHide = false
-    for (let i = index - 1;i >= 0;i --) {
+    let ids = currentTransports.map(c => c.id)
+    for (let i = index - 1; i >= 0; i--) {
       let t = transports[i] || {}
       let p = _.get(t, 'file.path') || ''
       let name = _.get(t, 'file.name') || ''
@@ -212,7 +243,7 @@ export default class Tranporter extends React.PureComponent {
       if (
         path.startsWith(pp) &&
         isDirectory &&
-        currentTransport.id !== t.id
+        !ids.includes(t.id)
       ) {
         shouldHide = false
       }
@@ -220,7 +251,7 @@ export default class Tranporter extends React.PureComponent {
     return `sftp-transport mg1b pd1x ${shouldHide ? 'hide' : ''}`
   }
 
-  render() {
+  render () {
     let {
       fromPath,
       toPath,
@@ -242,14 +273,14 @@ export default class Tranporter extends React.PureComponent {
     let title = `${e(transferType)}: ${fromPath} -> ${toPath} ${speed || ''} ${percent || 0}%`
     return (
       <div className={cls} title={title}>
-        <Icon type={icon} className="sftp-type-icon iblock mg1r color-blue" />
+        <Icon type={icon} className='sftp-type-icon iblock mg1r color-blue' />
         <span
-          className="sftp-file sftp-local-file elli width200 iblock"
+          className='sftp-file sftp-local-file elli width200 iblock'
           title={fromPath}
         >{fromPath}</span>
-        <Icon type={icon2} className="sftp-direction-icon mg1x iblock" />
+        <Icon type={icon2} className='sftp-direction-icon mg1x iblock' />
         <span
-          className="sftp-file sftp-remote-file elli mg1r width200 iblock"
+          className='sftp-file sftp-remote-file elli mg1r width200 iblock'
         >{toPath}</span>
         <span
           className={`sftp-file-percent mg1r iblock sftp-status-${status}`}
@@ -264,13 +295,13 @@ export default class Tranporter extends React.PureComponent {
         </span>
         <Icon
           type={pauseIcon}
-          className="sftp-control-icon iblock pointer mg1r hover-black"
+          className='transfer-control-icon iblock pointer mg1r hover-black'
           onClick={pauseFunc}
           title={pauseTitle}
         />
         <Icon
-          type="close-circle"
-          className="sftp-control-icon iblock pointer hover-black"
+          type='close-circle'
+          className='transfer-control-icon iblock pointer hover-black'
           onClick={this.cancel}
           title={e('cancel')}
         />

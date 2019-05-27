@@ -2,6 +2,8 @@
  * shortcut controll
  */
 
+const log = require('../utils/log')
+
 let shortcut
 
 /**
@@ -15,14 +17,13 @@ exports.init = (globalShortcut, win, config) => {
   globalShortcut.register(shortcut, () => {
     if (win.isFocused()) {
       win.hide()
-    }
-    else {
+    } else {
       win.show()
     }
   })
   let ok = globalShortcut.isRegistered(shortcut)
   if (!ok) {
-    console.log('shortcut Registration failed.')
+    log.warn('shortcut Registration failed.')
   }
 }
 

@@ -11,7 +11,7 @@ import {
 } from 'antd'
 import createName from '../../common/create-title'
 import classnames from 'classnames'
-import {generate} from 'shortid'
+import { generate } from 'shortid'
 import InputAutoFocus from '../common/input-auto-focus'
 import _ from 'lodash'
 import {
@@ -20,19 +20,19 @@ import {
 } from '../../common/constants'
 import highlight from '../common/highlight'
 import copy from 'json-deep-copy'
+import onDrop from './on-tree-drop'
 import Search from '../common/search'
 import Btns from './bookmark-transport'
 import './tree-list.styl'
 
-const {TreeNode} = Tree
-const {prefix} = window
+const { TreeNode } = Tree
+const { prefix } = window
 const e = prefix('menu')
 const c = prefix('common')
 const s = prefix('setting')
 
 export default class ItemListTree extends React.PureComponent {
-
-  constructor(props) {
+  constructor (props) {
     super(props)
     this.state = {
       keyword: '',
@@ -73,7 +73,7 @@ export default class ItemListTree extends React.PureComponent {
   }
 
   onChangeEdit = e => {
-    let {value} = e.target
+    let { value } = e.target
     if (value.length > maxBookmarkGroupTitleLength) {
       value = value.slice(0, maxBookmarkGroupTitleLength)
     }
@@ -104,92 +104,20 @@ export default class ItemListTree extends React.PureComponent {
     this.setState({
       categoryId: ''
     })
-    this.props.modifyLs({
+    this.props.store.modifier({
       bookmarkGroups
     })
   }
 
   onDrop = (info) => {
-    let {
-      dropToGap,
-      dragNode,
-      node
-    } = info
-    if (
-      dropToGap ||
-      node.props.isLeaf
-    ) {
-      return
-    }
-    let fromId = dragNode.props.eventKey
-    let toId = node.props.eventKey
-    let fromLeaf = dragNode.props.isLeaf
-    let from = fromLeaf
-      ? _.find(
-        this.props.bookmarks,
-        d => d.id === fromId
-      )
-      : _.find(
-        this.props.bookmarkGroups,
-        d => d.id === fromId
-      )
-    let to = _.find(
-      this.props.bookmarkGroups,
-      d => d.id === toId
-    )
-    if (!to || !from) {
-      return
-    }
-    if (to.level === 2 && !fromLeaf) {
-      return
-    }
-    if (from.level === 2 && to.level === 2) {
-      return
-    }
-    if (to.bookmarkIds && to.bookmarkIds.includes(from.id)) {
-      return
-    }
-    if (to.bookmarkGroupIds && to.bookmarkGroupIds.includes(from.id)) {
-      return
-    }
-    let bookmarkGroups = copy(
-      this.props.bookmarkGroups
-    )
-    let fromGroup = fromLeaf
-      ? _.find(
-        bookmarkGroups,
-        d => (d.bookmarkIds || []).includes(fromId)
-      )
-      : _.find(
-        bookmarkGroups,
-        d => (d.bookmarkGroupIds || []).includes(fromId)
-      )
-    if (fromLeaf) {
-      _.remove(fromGroup.bookmarkIds, d => d === fromId)
-    } else {
-      _.remove(fromGroup.bookmarkGroupIds, d => d === fromId)
-    }
-    let toGroup = _.find(
-      bookmarkGroups,
-      d => d.id === toId
-    )
-    if (fromLeaf) {
-      toGroup.bookmarkIds = toGroup.bookmarkIds || []
-      toGroup.bookmarkIds.unshift(fromId)
-    } else {
-      toGroup.bookmarkGroupIds = toGroup.bookmarkGroupIds || []
-      toGroup.bookmarkGroupIds.unshift(fromId)
-    }
-    this.props.modifyLs({
-      bookmarkGroups
-    })
+    onDrop(info, this.props)
   }
 
   onSubmit = false
   onSubmitEdit = false
 
   onChangeBookmarkGroupTitle = e => {
-    let {value} = e.target
+    let { value } = e.target
     if (value.length > maxBookmarkGroupTitleLength) {
       value = value.slice(0, maxBookmarkGroupTitleLength)
     }
@@ -199,7 +127,7 @@ export default class ItemListTree extends React.PureComponent {
   }
 
   onChangeBookmarkGroupTitleSub = e => {
-    let {value} = e.target
+    let { value } = e.target
     if (value.length > maxBookmarkGroupTitleLength) {
       value = value.slice(0, maxBookmarkGroupTitleLength)
     }
@@ -224,7 +152,7 @@ export default class ItemListTree extends React.PureComponent {
       showNewBookmarkGroupForm: false
     }, () => {
       this.onSubmit = false
-      this.props.addBookmarkGroup({
+      this.props.store.addBookmarkGroup({
         id: generate(),
         title: this.state.bookmarkGroupTitle,
         bookmarkIds: []
@@ -266,7 +194,7 @@ export default class ItemListTree extends React.PureComponent {
         ...(cat.bookmarkGroupIds || []),
         newCat.id
       ]
-      this.props.modifyLs({
+      this.props.store.modifier({
         bookmarkGroups
       })
     })
@@ -283,10 +211,10 @@ export default class ItemListTree extends React.PureComponent {
   del = (item, e) => {
     e.stopPropagation()
     if (item.bookmarkIds) {
-      return this.props.delBookmarkGroup(item)
+      return this.props.store.delBookmarkGroup(item)
     }
-    this.props.delItem(item, this.props.type)
-    this.props.onDelItem(item, this.props.type)
+    this.props.store.onDelItem(item, this.props.type)
+    this.props.store.delItem(item, this.props.type)
   }
 
   onExpand = (expandedKeys) => {
@@ -303,11 +231,11 @@ export default class ItemListTree extends React.PureComponent {
   ) => {
     let [id] = selectedKeys
     if (!node.props.isLeaf) {
-      this.props.modifier({
+      this.props.store.modifier({
         currentBookmarkGroupId: id
       })
     }
-    let {bookmarks} = this.props
+    let { bookmarks } = this.props
     let bookmark = _.find(
       bookmarks,
       d => d.id === id
@@ -319,7 +247,7 @@ export default class ItemListTree extends React.PureComponent {
 
   renderSearch = () => {
     return (
-      <div className="pd1y pd2r">
+      <div className='pd1y pd2r'>
         <Search
           onChange={this.onChange}
           value={this.state.keyword}
@@ -338,12 +266,12 @@ export default class ItemListTree extends React.PureComponent {
         onConfirm={e => this.del(item, e)}
         okText={e('del')}
         cancelText={c('cancel')}
-        placement="top"
+        placement='top'
       >
         <Icon
-          type="close"
+          type='close'
           title={e('del')}
-          className="pointer list-item-del"
+          className='pointer list-item-del'
         />
       </Popconfirm>
     )
@@ -378,10 +306,10 @@ export default class ItemListTree extends React.PureComponent {
     }
     return (
       <Icon
-        type="folder-add"
+        type='folder-add'
         title={`${s('new')} ${c('bookmarkCategory')}`}
         onClick={(e) => this.addSubCat(e, item)}
-        className="pointer list-item-edit"
+        className='pointer list-item-edit'
       />
     )
   }
@@ -392,10 +320,10 @@ export default class ItemListTree extends React.PureComponent {
     }
     return (
       <Icon
-        type="edit"
+        type='edit'
         title={e('edit')}
         onClick={(e) => this.editItem(e, item)}
-        className="pointer list-item-edit"
+        className='pointer list-item-edit'
       />
     )
   }
@@ -407,13 +335,13 @@ export default class ItemListTree extends React.PureComponent {
     let confirm = (
       <span>
         <Icon
-          type="check"
-          className="pointer"
+          type='check'
+          className='pointer'
           onClick={this.submitEdit}
         />
         <Icon
-          type="close"
-          className="mg1l pointer"
+          type='close'
+          className='mg1l pointer'
           onClick={this.cancelEdit}
         />
       </span>
@@ -450,7 +378,7 @@ export default class ItemListTree extends React.PureComponent {
       )
     return (
       <div className={cls} key={item.id} title={title}>
-        <div className="tree-item-title elli">
+        <div className='tree-item-title elli'>
           {title}
         </div>
         {
@@ -502,11 +430,11 @@ export default class ItemListTree extends React.PureComponent {
   }
 
   renderGroupChildNodes = bookmarkGroupIds => {
-    let bookmarkGroups = this.props.bookmarkGroups.filter(
-      d => bookmarkGroupIds.includes(d.id)
-    )
+    let bookmarkGroups = bookmarkGroupIds.map(id => {
+      return _.find(this.props.bookmarkGroups, d => d.id === id)
+    }).filter(d => d)
     return bookmarkGroups.map(node => {
-      let {bookmarkIds = [], id} = node
+      let { bookmarkIds = [], id } = node
       return (
         <TreeNode
           key={id}
@@ -548,7 +476,7 @@ export default class ItemListTree extends React.PureComponent {
   }
 
   filter = list => {
-    let {keyword} = this.state
+    let { keyword } = this.state
     return keyword
       ? list.filter(item => {
         return createName(item).toLowerCase().includes(keyword.toLowerCase())
@@ -558,23 +486,23 @@ export default class ItemListTree extends React.PureComponent {
 
   renderNewButtons = () => {
     return (
-      <div className="pd1b pd2r">
+      <div className='pd1b pd2r'>
         <Button
-          className="mg1r mg1t"
+          className='mg1r mg1t'
           onClick={this.newBookmark}
           title={`${s('new')} ${c('bookmarks')}`}
         >
-          <Icon type="book" className="with-plus" />
+          <Icon type='book' className='with-plus' />
         </Button>
         <Button
-          className="mg1t"
+          className='mg1t'
           onClick={this.newBookmarkGroup}
           title={`${s('new')} ${c('bookmarkCategory')}`}
         >
-          <Icon type="folder" className="with-plus" />
+          <Icon type='folder' className='with-plus' />
         </Button>
         <Btns
-          {...this.props}
+          store={this.props.store}
         />
       </div>
     )
@@ -591,13 +519,13 @@ export default class ItemListTree extends React.PureComponent {
     let confirm = (
       <span>
         <Icon
-          type="check"
-          className="pointer"
+          type='check'
+          className='pointer'
           onClick={this.submitSub}
         />
         <Icon
-          type="close"
-          className="mg1l pointer"
+          type='close'
+          className='mg1l pointer'
           onClick={this.cancelNewSub}
         />
       </span>
@@ -629,19 +557,19 @@ export default class ItemListTree extends React.PureComponent {
     let confirm = (
       <span>
         <Icon
-          type="check"
-          className="pointer"
+          type='check'
+          className='pointer'
           onClick={this.submit}
         />
         <Icon
-          type="close"
-          className="mg1l pointer"
+          type='close'
+          className='mg1l pointer'
           onClick={this.cancelNew}
         />
       </span>
     )
     return (
-      <div className="pd1y">
+      <div className='pd1y'>
         <InputAutoFocus
           value={bookmarkGroupTitle}
           onPressEnter={this.submit}
@@ -652,7 +580,7 @@ export default class ItemListTree extends React.PureComponent {
     )
   }
 
-  render() {
+  render () {
     let {
       bookmarkGroups,
       type,
@@ -660,7 +588,7 @@ export default class ItemListTree extends React.PureComponent {
       staticList,
       listStyle = {}
     } = this.props
-    let {keyword} = this.state
+    let { keyword } = this.state
     let expandedKeys = this.props.expandedKeys || this.state.expandedKeys
     let level1Bookgroups = bookmarkGroups.filter(
       d => !d.level || d.level < 2
@@ -675,12 +603,12 @@ export default class ItemListTree extends React.PureComponent {
         {
           this.renderSearch()
         }
-        <div className="item-list-wrap pd2r" style={listStyle}>
+        <div className='item-list-wrap pd2r' style={listStyle}>
           {this.renderNewBookmarkGroup()}
           <Tree
             onExpand={this.props.onExpand || this.onExpand}
             expandedKeys={expandedKeys}
-            autoExpandParent={!!keyword || !!staticList}
+            autoExpandAll={!!keyword || !!staticList}
             onSelect={this.onSelect}
             draggable={!staticList}
             selectedKeys={[activeItemId]}
@@ -692,5 +620,4 @@ export default class ItemListTree extends React.PureComponent {
       </div>
     )
   }
-
 }

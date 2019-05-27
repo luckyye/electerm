@@ -2,42 +2,43 @@
  * btns
  */
 
-import {Icon, Button} from 'antd'
-import {ctrlOrCmd} from '../../common/constants'
+import { Component } from '../common/react-subx'
+import { Icon, Button } from 'antd'
+import { ctrlOrCmd } from '../../common/constants'
 import createTitle from '../../common/create-title'
 import Context from '../common/context-menu'
 import BookmarksList from '../sidebar/bookmark-select'
 import './system-menu.styl'
 
-const {prefix} = window
+const { prefix } = window
 const e = prefix('control')
 const m = prefix('menu')
 const c = prefix('common')
 const t = prefix('tabs')
 const s = prefix('setting')
-const {Group} = Button
+const { Group } = Button
 
-function renderBookmarks(props) {
+function renderBookmarks (store) {
   return (
-    <div className="sub-context-menu bookmarks-sub-context-menu">
+    <div className='sub-context-menu bookmarks-sub-context-menu'>
       <BookmarksList
-        {...props}
+        store={store}
       />
     </div>
   )
 }
 
-function renderTabs(props) {
+function renderTabs (store) {
   return (
-    <div className="sub-context-menu">
+    <div className='sub-context-menu'>
       {
-        props.tabs.map(item => {
+        store.tabs.map(item => {
           let title = createTitle(item)
           return (
             <div
-              className="sub-context-menu-item"
+              className='sub-context-menu-item'
               title={title}
-              onClick={() => props.onChangeTabId(item.id)}
+              onClick={() => store.onChangeTabId(item.id)}
             >
               {title}
             </div>
@@ -48,17 +49,17 @@ function renderTabs(props) {
   )
 }
 
-function renderHistory(props) {
+function renderHistory (store) {
   return (
-    <div className="sub-context-menu">
+    <div className='sub-context-menu'>
       {
-        props.history.map(item => {
+        store.history.map(item => {
           let title = createTitle(item)
           return (
             <div
-              className="sub-context-menu-item"
+              className='sub-context-menu-item'
               title={title}
-              onClick={() => props.onSelectHistory(item.id)}
+              onClick={() => store.onSelectHistory(item.id)}
             >
               {title}
             </div>
@@ -69,86 +70,86 @@ function renderHistory(props) {
   )
 }
 
-function renderContext(props) {
+function renderContext (store) {
   let cls = 'pd2x pd1y context-item pointer'
   let cls1 = cls + ' with-sub-menu'
   return (
-    <div className="menus">
+    <div className='menus'>
       <div
         className={cls}
-        onClick={props.onNewSsh}
+        onClick={store.onNewSsh}
       >
-        <Icon type="code" theme="filled" /> {e('newSsh')}
-        <span className="context-sub-text">{ctrlOrCmd}+N</span>
+        <Icon type='code' theme='filled' /> {e('newSsh')}
+        <span className='context-sub-text'>{ctrlOrCmd}+N</span>
       </div>
       <div
         className={cls}
-        onClick={() => props.addTab()}
+        onClick={() => store.addTab()}
       >
-        <Icon type="right-square" theme="filled" /> {t('newTab')}
+        <Icon type='right-square' theme='filled' /> {t('newTab')}
       </div>
       <hr />
       <div
         className={cls1 + ' no-auto-close-context'}
       >
-        <Icon type="book" /> {c('bookmarks')}
-        <span className="context-sub-text">
-          <Icon type="right" />
+        <Icon type='book' /> {c('bookmarks')}
+        <span className='context-sub-text'>
+          <Icon type='right' />
         </span>
-        {renderBookmarks(props)}
+        {renderBookmarks(store)}
       </div>
       <div
         className={cls1}
       >
-        <Icon type="clock-circle" /> {c('history')}
-        <span className="context-sub-text">
-          <Icon type="right" />
+        <Icon type='clock-circle' /> {c('history')}
+        <span className='context-sub-text'>
+          <Icon type='right' />
         </span>
-        {renderHistory(props)}
+        {renderHistory(store)}
       </div>
       <div
         className={cls1}
       >
-        <Icon type="bars" /> {t('sessions')}
-        <span className="context-sub-text">
-          <Icon type="right" />
+        <Icon type='bars' /> {t('sessions')}
+        <span className='context-sub-text'>
+          <Icon type='right' />
         </span>
-        {renderTabs(props)}
+        {renderTabs(store)}
       </div>
       <hr />
       <div
         className={cls}
-        onClick={props.openAbout}
+        onClick={store.openAbout}
       >
-        <Icon type="info-circle" /> {m('about')}
+        <Icon type='info-circle' /> {m('about')}
       </div>
       <div
         className={cls}
-        onClick={props.openSetting}
+        onClick={store.openSetting}
       >
-        <Icon type="setting" /> {s('settings')}
+        <Icon type='setting' /> {s('settings')}
       </div>
       <div
         className={cls}
         onClick={() => window.getGlobal('openDevTools')()}
       >
-        <Icon type="left-square" theme="filled" /> {m('toggledevtools')}
+        <Icon type='left-square' theme='filled' /> {m('toggledevtools')}
       </div>
       <hr />
       <div
         className={cls + ' no-auto-close-context'}
       >
-        <Group size="small">
-          <span className="mg1r iblock">
-            {props.config.zoom * 100}
+        <Group size='small'>
+          <span className='mg1r iblock'>
+            {store.config.zoom * 100}
           </span>
-          <Button onClick={() => props.zoom(0.5, true)}>
-            <Icon type="plus-circle" />
+          <Button onClick={() => store.zoom(0.5, true)}>
+            <Icon type='plus-circle' />
           </Button>
-          <Button onClick={() => props.zoom(-0.5, true)}>
-            <Icon type="minus-circle" />
+          <Button onClick={() => store.zoom(-0.5, true)}>
+            <Icon type='minus-circle' />
           </Button>
-          <Button onClick={() => props.zoom()}>
+          <Button onClick={() => store.zoom()}>
             100%
           </Button>
         </Group>
@@ -157,55 +158,59 @@ function renderContext(props) {
         className={cls}
         onClick={() => window.getGlobal('minimize')()}
       >
-        <Icon type="switcher" theme="filled" /> {m('minimize')}
+        <Icon type='switcher' theme='filled' /> {m('minimize')}
       </div>
       <div
         className={cls}
         onClick={() => window.getGlobal('maximize')()}
       >
-        <Icon type="layout" theme="filled" /> {m('maximize')}
+        <Icon type='layout' theme='filled' /> {m('maximize')}
       </div>
       <div
         className={cls}
         onClick={() => window.location.reload()}
       >
-        <Icon type="reload" /> {m('reload')}
+        <Icon type='reload' /> {m('reload')}
       </div>
       <hr />
       <div
         className={cls}
-        onClick={props.onCheckUpdate}
+        onClick={store.onCheckUpdate}
       >
-        <Icon type="up-circle" /> {e('checkForUpdate')}
+        <Icon type='up-circle' /> {e('checkForUpdate')}
       </div>
       <hr />
       <div
         className={cls}
         onClick={() => window.getGlobal('restart')()}
       >
-        <Icon type="redo" /> {m('restart')}
+        <Icon type='redo' /> {m('restart')}
       </div>
       <div
         className={cls}
         onClick={() => window.getGlobal('closeApp')()}
       >
-        <Icon type="close" /> {m('close')}
+        <Icon type='close' /> {m('close')}
       </div>
     </div>
   )
 }
 
-export default (props) => {
-  return (
-    <Context
-      content={renderContext(props)}
-      visible={props.menuOpened}
-      closeContextMenu={props.closeMenu}
-      pos={{
-        left: 40,
-        top: 10
-      }}
-      key="menu-item-wrap"
-    />
-  )
+export default class SystemMenu extends Component {
+  render () {
+    const { store } = this.props
+    return (
+      <Context
+        content={renderContext(store)}
+        visible={store.menuOpened}
+        className='context-menu system-menu'
+        closeContextMenu={store.closeMenu}
+        pos={{
+          left: 40,
+          top: 10
+        }}
+        key='menu-item-wrap'
+      />
+    )
+  }
 }

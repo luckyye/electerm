@@ -9,8 +9,8 @@
     }]
   ],
   "plugins": [
+    ["@babel/plugin-proposal-decorators", { "legacy": true }],
     "@babel/plugin-proposal-class-properties",
-    "lodash",
     "@babel/plugin-syntax-dynamic-import",
     [
       "import",
@@ -19,7 +19,6 @@
         "style": true
       }
     ],
-    ["@babel/plugin-proposal-decorators", { "legacy": true }],
     [
       "@babel/plugin-transform-runtime",
       {

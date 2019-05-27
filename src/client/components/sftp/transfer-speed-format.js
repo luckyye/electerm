@@ -23,7 +23,7 @@ export default (bytes, startTime) => {
   }
 }
 
-function formatTime(ms) {
+function formatTime (ms) {
   let d = Math.floor(ms / day)
   let h = Math.floor((ms - d * day) / hour)
   let m = Math.floor((ms - d * day - h * hour) / minute)
@@ -53,5 +53,8 @@ export const computeLeftTime = (bytes, total, startTime) => {
   }
   let speed = bytes / (now - startTime)
   let allTimeNeed = (total - bytes) / speed
-  return formatTime(allTimeNeed)
-} 
+  return {
+    leftTime: formatTime(allTimeNeed),
+    leftTimeInt: allTimeNeed
+  }
+}

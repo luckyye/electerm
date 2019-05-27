@@ -27,10 +27,10 @@ export const contextMenuPaddingTop = 10
 export const sftpControlHeight = 28 + 42 + 6 + 33
 export const sidebarWidth = 43
 export const maxHistory = 50
-
+export const maxTransport = 5
 export const maxSftpHistory = 20
 
-//export const maxTabs = 20
+// export const maxTabs = 20
 
 export const tabWidth = 160
 
@@ -91,7 +91,6 @@ export const fileOpTypeMap = buildConst([
   'copy',
   'mv'
 ])
-
 
 export const terminalSplitDirectionMap = buildConst([
   'horizontal',
