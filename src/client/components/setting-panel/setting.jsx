@@ -2,7 +2,7 @@
 import { Component } from 'react'
 import {
   message, Select, Switch,
-  Input, Icon,
+  Input, Icon, Upload,
   InputNumber, Alert, Button
 } from 'antd'
 import deepCopy from 'json-deep-copy'
@@ -191,6 +191,33 @@ export default class Setting extends Component {
     )
   }
 
+  renderTerminalBgSelect = (name) => {
+    let value = this.props.config[name]
+    let defaultValue = this.props.config.defaultSettings[name]
+    let onChange = (e) => this.onChangeValue(e.target.value, name)
+    let after = (
+      <Upload
+        beforeUpload={(file) => {
+          this.onChangeValue(file.path, name)
+          return false
+        }}
+        showUploadList={false}
+      >
+        <span>{e('chooseFile')}</span>
+      </Upload>
+    )
+    return (
+      <div className='pd2b'>
+        <Input
+          value={value}
+          onChange={onChange}
+          placeholder={defaultValue}
+          addonAfter={after}
+        />
+      </div>
+    )
+  }
+
   renderReset = () => {
     return (
       <div className='pd1b pd1t'>
@@ -266,7 +293,8 @@ export default class Setting extends Component {
   render () {
     let {
       hotkey,
-      language
+      language,
+      rendererType
     } = this.props.config
     let { themes, theme } = this.props.store
     let langs = getGlobal('langs')
@@ -364,6 +392,22 @@ export default class Setting extends Component {
           <Icon type='code' theme='outlined' className='mg1r' />
           {s('terminal')} {e('settings')}
         </div>
+        <div className='pd1b'>{e('rendererType')}</div>
+        <div className='pd2b'>
+          <Select
+            onChange={v => this.onChangeValue(v, 'rendererType')}
+            value={rendererType}
+            dropdownMatchSelectWidth={false}
+          >
+            {
+              ['canvas', 'dom'].map(id => {
+                return (
+                  <Option key={id} value={id}>{id}</Option>
+                )
+              })
+            }
+          </Select>
+        </div>
         <div className='pd1b'>{t('default')} {e('fontSize')}</div>
         {
           this.renderNumber('fontSize', {
@@ -374,6 +418,10 @@ export default class Setting extends Component {
         <div className='pd1b'>{t('default')} {e('fontFamily')}</div>
         {
           this.renderText('fontFamily')
+        }
+        <div className='pd1b'>{e('terminalBackgroundImage')}</div>
+        {
+          this.renderTerminalBgSelect('terminalBackgroundImagePath')
         }
         <div className='pd1b'>{t('default')} {e('execWindows')}</div>
         {

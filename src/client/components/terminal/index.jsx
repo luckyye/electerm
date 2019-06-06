@@ -27,17 +27,14 @@ import * as fit from 'xterm/lib/addons/fit/fit'
 import * as attach from 'xterm/lib/addons/attach/attach'
 import * as search from 'xterm/lib/addons/search/search'
 import * as webLinks from 'xterm/lib/addons/webLinks/webLinks'
-import * as winptyCompat from 'xterm/lib/addons/winptyCompat/winptyCompat'
 import * as zmodem from 'xterm/lib/addons/zmodem/zmodem'
 import keyControlPressed from '../../common/key-control-pressed'
-
 import { Terminal } from 'xterm'
 
 Terminal.applyAddon(fit)
 Terminal.applyAddon(attach)
 Terminal.applyAddon(search)
 Terminal.applyAddon(webLinks)
-Terminal.applyAddon(winptyCompat)
 Terminal.applyAddon(zmodem)
 
 const { prefix } = window
@@ -532,8 +529,10 @@ export default class Term extends Component {
       rightClickSelectsWord: config.rightClickSelectsWord || false,
       fontFamily: tab.fontFamily || config.fontFamily,
       theme: themeConfig,
+      allowTransparency: true,
       // lineHeight: 1.2,
-      fontSize: tab.fontSize || config.fontSize
+      fontSize: tab.fontSize || config.fontSize,
+      rendererType: config.rendererType
     })
     term.open(document.getElementById(id), true)
     term.on('focus', this.setActive)
@@ -682,9 +681,6 @@ export default class Term extends Component {
     let cid = _.get(this.props, 'currentTabId')
     let tid = _.get(this.props, 'tab.id')
     if (cid === tid && this.props.tab.status === statusMap.success) {
-      if (isWin) {
-        term.winptyCompatInit()
-      }
       term.webLinksInit()
       term.focus()
       term.fit()
@@ -919,7 +915,7 @@ export default class Term extends Component {
   render () {
     let { id, loading, zmodemTransfer } = this.state
     let { height, width, left, top, position, id: pid } = this.props
-    let cls = classnames('term-wrap bg-black', {
+    let cls = classnames('term-wrap', {
       'not-first-term': !!position
     }, 'tw-' + pid)
     return (
@@ -941,7 +937,7 @@ export default class Term extends Component {
           className='hide'
         />
         <div
-          className='bg-black absolute'
+          className='absolute'
           style={{
             left: '3px',
             top: '10px',
