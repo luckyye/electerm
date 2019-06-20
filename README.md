@@ -15,10 +15,10 @@
 [![license](https://img.shields.io/github/license/electerm/electerm.svg)](https://github.com/electerm/electerm/blob/master/LICENSE)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
-Terminal/ssh/sftp client(linux, mac, win) based on electron/ssh2/node-pty/xterm/antd and other libs, expecially [subx](https://github.com/tylerlong/subx)(my favourite state manager).
+Terminal/ssh/sftp client(linux, mac, win) based on electron/ssh2/node-pty/xterm/antd and other libs, especially [subx](https://github.com/tylerlong/subx).
 
 <div align="center">
-  <img style="border-radius:3px;border:1px solid #333" src="https://github.com/electerm/electerm-resource/raw/master/static/images/electerm.gif", alt="" />
+  <img src="https://github.com/electerm/electerm-resource/raw/master/static/images/electerm.gif", alt="" />
 </div>
 
 ## Download
@@ -50,9 +50,10 @@ npm i -g electerm
 - Double click to directly edit remote file(small ones).
 - Edit local file with built-in editor(small ones).
 - Support auth with publickey + password.
-- Support Zmodem.
+- Support Zmodem(rz, sz).
 - Support transparent window(Mac, win).
-- Support terminal background image
+- Support terminal background image.
+- Support global/session proxy.
 
 ## Support
 
