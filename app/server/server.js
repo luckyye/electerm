@@ -62,6 +62,7 @@ app.ws('/terminals/:pid', function (ws, req) {
 
   term.on('data', function (data) {
     try {
+      log.debug(data)
       ws.send(Buffer.from(data))
     } catch (ex) {
       // The WebSocket is not open, ignore

@@ -40,7 +40,7 @@ const a = prefix('app')
 global.win = null
 let timer
 let timer1
-let childPid
+// let childPid
 const iconPath = resolve(
   __dirname,
   (
@@ -60,7 +60,7 @@ function onClose () {
     clearTimeout(timer)
     clearTimeout(timer1)
     global.win = null
-    process.kill(childPid)
+    // process.kill(childPid)
     process.on('uncaughtException', function () {
       process.exit(0)
     })
@@ -88,21 +88,21 @@ async function createWindow () {
   let config = await getConf()
 
   // start server
-  let child = fork(resolve(__dirname, './server/server.js'), {
-    env: Object.assign(
-      {},
-      process.env,
-      _.pick(config, ['port', 'host'])
-    ),
-    cwd: process.cwd()
-  }, (error, stdout, stderr) => {
-    if (error || stderr) {
-      throw error || stderr
-    }
-    log.info(stdout)
-  })
+  // let child = fork(resolve(__dirname, './server/server.js'), {
+  //   env: Object.assign(
+  //     {},
+  //     process.env,
+  //     _.pick(config, ['port', 'host'])
+  //   ),
+  //   cwd: process.cwd()
+  // }, (error, stdout, stderr) => {
+  //   if (error || stderr) {
+  //     throw error || stderr
+  //   }
+  //   log.info(stdout)
+  // })
 
-  childPid = child.pid
+  // childPid = child.pid
 
   if (config.showMenu) {
     Menu.setApplicationMenu(menu)
@@ -115,6 +115,7 @@ async function createWindow () {
 
   // Create the browser window.
   global.win = new BrowserWindow({
+    minWidth: 460,
     width,
     height,
     fullscreenable: true,

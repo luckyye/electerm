@@ -30,7 +30,7 @@ export default memo(props => {
         <Icon
           type='minus'
           title={m('minimize')}
-          className='iblock font12 widnow-control-icon'
+          className='iblock font20 widnow-control-icon'
           onClick={minimize}
         />
       </div>
@@ -40,7 +40,7 @@ export default memo(props => {
             isMaximized ? m('unmaximize') : m('maximize')
           }
           className={
-            'iblock font12 icon-maximize widnow-control-icon ' +
+            'iblock font20 icon-maximize widnow-control-icon ' +
               (isMaximized ? 'is-max' : 'not-max')
           }
           onClick={
@@ -52,7 +52,7 @@ export default memo(props => {
         <Icon
           type='close'
           title={m('close')}
-          className='iblock font12 widnow-control-icon'
+          className='iblock font20 widnow-control-icon'
           onClick={closeApp}
         />
       </div>

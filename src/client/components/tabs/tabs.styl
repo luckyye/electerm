@@ -1,33 +1,46 @@
 .tabs
+  display flex
   position relative
-  height 56px
-  overflow hidden
+  height 46px
+  // overflow hidden
   background #000
+  -webkit-app-region drag
 .app-drag
   -webkit-app-region drag
-  position absolute
-  left 0
-  top 0
-  height 15px
-  right 0
-  z-index 1
+  flex-grow: 1
+  flex-shrink: 0
+  min-width 100px
+  // flex-basis 1%
+  // position absolute
+  // left 0
+  // top 0
+  // height 15px
+  // right 0
+  // z-index 1
 .tabs-inner
-  position relative
-  z-index 2
-  padding 0 5px
-  margin-top 10px
-  display inline-block
-  height 63px
-  overflow-x scroll
-  overflow-y hidden
-  margin-left 42px
-  -webkit-app-region drag
+  // position relative
+  // z-index 2
+  // padding 0 5px
+  // margin-top 10px
+  overflow hidden
+  display flex
+  height 46px
+  min-width 166px
+  // flex-basis: 1%
+  // overflow-x scroll
+  // overflow-y hidden
+  // margin-left 42px
+  padding-left: 43px
+  -webkit-app-region no-drag
 .tabs-wrapper
-  z-index 3
-.tabs-inner .app-drag
-  z-index 2
-  height 47px
+  display flex
+  flex-shrink: 0
+  // z-index 3
+// .tabs-inner .app-drag
+//   z-index 2
+//   height 46px
 .tab
+  flex-shrink: 0
   -webkit-app-region no-drag
   display inline-block
   vertical-align middle
@@ -108,13 +121,21 @@
   color #aaa
   &:hover
     color #ccc
+// .control
+//   position absolute
+//   top 0
+//   right 0
 .tabs-extra
-  position absolute
-  height 76px
-  top 0
-  right 0
-  line-height 76px
-  z-index 20
+  flex-shrink: 0
+  // display: inline-block
+  // position absolute
+  // height 46px
+  margin-left: auto
+  // top 0
+  // right 0
+  line-height 46px
+  width 81
+  // z-index 20
   -webkit-app-region no-drag
   background #000
   .ant-btn
@@ -127,19 +148,23 @@
     color #aaa
 
 .window-controls
-  position absolute
-  right 10px
+  margin: 5px 5px 5px 0
+  flex-shrink: 0
+  // display: inline-block
+  // position absolute
+  // right 5px
+  // margin-left: auto
   -webkit-app-region no-drag
-  top 0
-  z-index 200
+  // top 5px
+  // z-index 200
   border-radius 0 0 3px 3px
-  padding 0 0 0 4px
+  // padding 0 0 0 4px
   background #333
 
 .window-control-box
   display inline-block
-  width 20px
-  height 20px
+  width 30px
+  height 30px
   color #ccc
   -webkit-app-region no-drag
   &:hover
@@ -147,6 +172,9 @@
     cursor pointer
     .icon-maximize
       border-color #08c
+  .widnow-control-icon
+    padding: 5px
+
 .icon-maximize
   width 10px
   height 7px

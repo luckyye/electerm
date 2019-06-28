@@ -6,8 +6,12 @@
   },
   "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
   "win": {
-    "target": ["tar.gz"],
-    "icon": "node_modules/@electerm/electerm-resource/build/icons.ico"
+    "target": ["nsis"],
+    "rfc3161TimeStampServer": "http://sha256timestamp.ws.symantec.com/sha256/timestamp",
+    "icon": "./build/electerm.ico"
+  },
+  "nsis":{
+    "oneClick": false
   },
   "mac": {
     "category": "public.app-category.developer-tools",

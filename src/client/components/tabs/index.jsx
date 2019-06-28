@@ -55,7 +55,7 @@ export default class Tabs extends React.Component {
     let addBtnWidth = 22
     let tabsWidth = this.tabsWidth()
     let tabsWidthAll = tabMargin * len + 10 + tabsWidth
-    return width < (tabsWidthAll + addBtnWidth)
+    return (tabsWidthAll + addBtnWidth) > width - 200
   }
 
   handleTabHotkey = e => {
@@ -164,7 +164,7 @@ export default class Tabs extends React.Component {
           type='plus-circle-o'
           title={e('openNewTerm')}
           className='pointer tabs-add-btn font16'
-          onClick={() => this.props.store.addTab()}
+          onClick={() => {this.props.store.addTab();this.dom.scrollLeft=2000}}
         />
       </Popover>
     )
@@ -198,30 +198,25 @@ export default class Tabs extends React.Component {
 
   render () {
     let { tabs = [], width } = this.props
+    console.log('width', width)
     let len = tabs.length
     let tabsWidthAll = tabMargin * len + 10 + this.tabsWidth()
     let overflow = this.isOverflow()
-    let left = overflow
-      ? '100%'
-      : tabsWidthAll
+    // let left = overflow
+    //   ? '100%'
+    //   : tabsWidthAll
     return (
       <div className='tabs noise'>
         <div
           className='tabs-inner'
-          style={{
-            width
-          }}
+          // style={{
+          //   width: width
+          // }}
         >
-          <div
-            className='app-drag'
-            style={{
-              left
-            }}
-          />
           <div
             className='tabs-wrapper relative'
             style={{
-              width: tabsWidthAll + extraWidth + 10
+              width: tabsWidthAll + 10
             }}
             onDoubleClick={this.onAdd}
           >
@@ -242,18 +237,26 @@ export default class Tabs extends React.Component {
                 : null
             }
           </div>
+
         </div>
-        <div className='app-drag' />
-        <WindowControl
-          isMaximized={this.props.isMaximized}
-          closeApp={this.props.store.exit}
-        />
+        <div
+            className='app-drag'
+            // style={{
+
+            // }}
+          />
+        {/* <div className='control'> */}
         {
           overflow
             ? this.renderExtra()
             : null
         }
-      </div>
+        <WindowControl
+          isMaximized={this.props.isMaximized}
+          closeApp={this.props.store.exit}
+        />
+        </div>
+      // </div>
     )
   }
 }

@@ -98,7 +98,8 @@ export default class Index extends Component {
         <div
           id='outside-context'
           style={{
-            opacity: config.opacity
+            opacity: config.opacity,
+            position: "relative"
           }}
         >
           <Sidebar store={store} />
